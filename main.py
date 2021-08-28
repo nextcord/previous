@@ -1,6 +1,7 @@
 from nextcord.ext import commands
 from os import environ as env
 from re import compile
+from threading import Thread
 
 bot = commands.Bot("=")
 
@@ -21,8 +22,6 @@ async def todo(ctx):
 async def ping(ctx):
     await ctx.send(f"Pong! My ping is {round(bot.latency*1000000)/1000000} microseconds.")
     
-@bot.command(help="Adds a todo item", brief = "Adds todo")
-
     
 
 bot.run(env["TOKEN"])
