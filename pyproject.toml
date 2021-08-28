@@ -5,7 +5,7 @@ description = ""
 authors = ["Tag-Epic <tagepicuwu@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 nextcord = "git+https://github.com/nextcord/nextcord.git#master"
 jishaku = "^2.2.0"
 
