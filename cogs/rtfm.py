@@ -101,7 +101,7 @@ class Rtfm(commands.Cog):
     async def do_rtfm(self, ctx, key, obj):
         page_types = {
             'python': 'https://docs.python.org/3',
-            'master': 'https://discordpy.readthedocs.io/en/master',
+            'master': 'https://nextcord.readthedocs.io/en/master',
         }
 
         if obj is None:
