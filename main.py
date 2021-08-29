@@ -2,6 +2,7 @@ import os
 from os import environ as env
 from re import compile
 
+import aiohttp
 from nextcord.ext import commands
 
 bot = commands.Bot("=")
@@ -30,4 +31,8 @@ for filename in os.listdir("./cogs"):
         if os.path.isfile(filename):
             print(f"Unable to load {filename[:-3]}") 
 
+async def startup():
+	bot.session = aiohttp.ClientSession()
+
+bot.loop.create_task(startup())
 bot.run(env["TOKEN"])
