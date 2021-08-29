@@ -43,6 +43,8 @@ class SphinxObjectFileReader:
 
 class Rtfm(commands.Cog):
     # full credit to https://github.com/Rapptz/RoboDanny
+    def __init__(self, bot):
+        self.bot = bot
     
     def parse_object_inv(self, stream: SphinxObjectFileReader, url: str) -> Dict:
         result = {}
@@ -101,7 +103,7 @@ class Rtfm(commands.Cog):
     async def do_rtfm(self, ctx, key, obj):
         page_types = {
             'python': 'https://docs.python.org/3',
-            'master': 'https://nextcord.readthedocs.io/en/master',
+            'master': 'https://nextcord.readthedocs.io/en/latest',
         }
 
         if obj is None:
