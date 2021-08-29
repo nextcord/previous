@@ -1,6 +1,6 @@
-import re
 import io
 import os
+import re
 import zlib
 from typing import Dict
 
@@ -8,6 +8,7 @@ import nextcord as discord
 from nextcord.ext import commands
 
 from .utils import fuzzy
+
 
 class SphinxObjectFileReader:
     # Inspired by Sphinx's InventoryFileReader
@@ -41,11 +42,12 @@ class SphinxObjectFileReader:
                 buf = buf[pos + 1:]
                 pos = buf.find(b'\n')
 
+
 class Rtfm(commands.Cog):
     # full credit to https://github.com/Rapptz/RoboDanny
     def __init__(self, bot):
         self.bot = bot
-    
+
     def parse_object_inv(self, stream: SphinxObjectFileReader, url: str) -> Dict:
         result = {}
         inv_version = stream.readline().rstrip()
@@ -54,7 +56,7 @@ class Rtfm(commands.Cog):
             raise RuntimeError("Invalid objects.inv file version.")
 
         projname = stream.readline().rstrip()[11:]
-        version = stream.readline().rstrip()[11:] # not needed
+        version = stream.readline().rstrip()[11:]  # not needed
 
         line = stream.readline()
         if "zlib" not in line:
@@ -128,6 +130,7 @@ class Rtfm(commands.Cog):
                     break
 
         cache = list(self._rtfm_cache[key].items())
+
         def transform(tup):
             return tup[0]
 
@@ -143,21 +146,22 @@ class Rtfm(commands.Cog):
         if ref and isinstance(ref.resolved, discord.Message):
             refer = ref.resolved.to_reference()
         await ctx.send(embed=e, reference=refer)
-        
+
     @commands.group(name="rtfm", help="python docs", aliases=["rtfd"], invoke_without_command=True)
-    async def rtfm_group(self, ctx: commands.Context, *, obj: str=None):
+    async def rtfm_group(self, ctx: commands.Context, *, obj: str = None):
         await self.do_rtfm(ctx, "master", obj)
-        
+
     @rtfm_group.command(name="python", aliases=["py"])
-    async def rtfm_python_cmd(self, ctx: commands.Context, *, obj: str=None):
+    async def rtfm_python_cmd(self, ctx: commands.Context, *, obj: str = None):
         await self.do_rtfm(ctx, "python", obj)
-        
+
     @commands.command(help="delete cache of rtfm (owner only)", aliases=["purge-rtfm", "delrtfm"])
     @commands.is_owner()
     async def rtfmcache(self, ctx: commands.Context):
         del self.bot._rtfm_cache
         embed = discord.Embed(title="Purged rtfm cache.", color=discord.Color.blurple())
         await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Rtfm(bot))
