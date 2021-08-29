@@ -1,3 +1,3 @@
 .env
 .history/ 
-# here for vscode users like me :)
+#.history/ folder in gitignore is here for vscode users like me :)
