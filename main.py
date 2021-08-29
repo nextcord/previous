@@ -32,7 +32,7 @@ for filename in os.listdir("./cogs"):
             print(f"Unable to load {filename[:-3]}") 
 
 async def startup():
-	bot.session = aiohttp.ClientSession()
+    bot.session = aiohttp.ClientSession()
 
 bot.loop.create_task(startup())
 bot.run(env["TOKEN"])
