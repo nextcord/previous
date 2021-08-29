@@ -149,6 +149,13 @@ class Rtfm(commands.Cog):
     @rtfm_group.command(name="python", aliases=["py"])
     async def rtfm_python_cmd(self, ctx: commands.Context, *, obj: str=None):
         await self.do_rtfm(ctx, "python", obj)
+        
+    @commands.command(help="delete cache of rtfm (owner only)", aliases=["purge-rtfm", "delrtfm"])
+    @commands.is_owner()
+    async def rtfmcache(self, ctx: commands.Context):
+        del self.bot._rtfm_cache
+        embed = discord.Embed(title="Purged rtfm cache.", color=discord.Color.blurple())
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Rtfm(bot))
