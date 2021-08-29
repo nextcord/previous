@@ -3,7 +3,8 @@ from os import environ as env
 from re import compile
 
 import aiohttp
-from nextcord.ext import commands,errors
+from nextcord.ext import commands
+from nextcord.ext.commnds import errors
 
 bot = commands.Bot("=")
 bot.load_extension("jishaku")
@@ -19,7 +20,13 @@ async def on_command_error(ctx,error):
     if isinstance(error, errors.CommandNotFound):
         await ctx.channel.send("This command does not exist.")
         return
-    await ctx.channel.send("Your command raised an exception: " + str(error))
+    if isinstance(error, errors.TooManyArguments):
+	await ctx.channel.send("You are giving too many arguments!")
+	return
+    if isinstance(error,errors.BadArgument):
+	await ctx.channel.send("The library ran into an error attempting to parse your argument.")
+	return
+    await ctx.channel.send("This command raised an exception: " + str(error))
 
 
 
