@@ -3,13 +3,25 @@ from os import environ as env
 from re import compile
 
 import aiohttp
-from nextcord.ext import commands
+from nextcord.ext import commands,errors
 
 bot = commands.Bot("=")
 bot.load_extension("jishaku")
 
 issue_regex = compile(r"##(\d+)")
 discord_regex = compile(r"#!(\d+)")
+
+@bot.event
+async def on_command_error(ctx,error):
+    if isinstance(error, errors.MissingRequiredArgument):
+        await ctx.channel.send("You are missing a required argument.")
+        return
+    if isinstance(error, errors.CommandNotFound):
+        await ctx.channel.send("This command does not exist.")
+        return
+    await ctx.channel.send("Your command raised an exception: " + str(error))
+
+
 
 @bot.listen()
 async def on_message(message):
