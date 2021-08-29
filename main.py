@@ -6,7 +6,7 @@ bot = commands.Bot("=")
 bot.load_extension("jishaku")
 
 issue_regex = compile(r"##(\d+)")
-discord_regex = compile(r"##(\d+)")
+discord_regex = compile(r"#!(\d+)")
 
 @bot.listen()
 async def on_message(message):
