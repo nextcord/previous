@@ -1,5 +1,7 @@
 from nextcord import ui, ButtonStyle, ChannelType, Interaction, MessageType
 from nextcord.ext import commands
+import nextcord
+
 
 class HelpView(ui.View):
     def __init__(self):
@@ -20,6 +22,7 @@ class HelpView(ui.View):
         thread = await interaction.channel.create_thread(name=f"{name} help ({interaction.user})", type=ChannelType.public_thread)
         await interaction.response.send_message("Created!", ephemeral=True)
         await thread.add_user(interaction.user)
+        await thread.add_user(nextcord.Object(397745647723216898))
 
 class HelpCog(commands.Cog):
     def __init__(self, bot):
