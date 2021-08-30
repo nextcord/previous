@@ -10,7 +10,22 @@ bot.load_extension("jishaku")
 
 issue_regex = compile(r"##(\d+)")
 discord_regex = compile(r"#!(\d+)")
-
+@bot.event
+async def on_command_error(ctx,error):
+    
+    if isinstance(error, errors.CommandNotFound):
+        await ctx.channel.send("This command does not exist.")
+        return
+    elif isinstance(error, errors.TooManyArguments):
+	    await ctx.channel.send("You are giving too many arguments!")
+	    return
+    elif isinstance(error,errors.BadArgument):
+	    await ctx.channel.send("The library ran into an error attempting to parse your argument.")
+	    return
+    elif isinstance(error, errors.MissingRequiredArgument):
+        await ctx.channel.send("You're missing a required argument.")
+    else:
+        await ctx.channel.send("This command raised an exception: " + str(error))
 
 @bot.listen()
 async def on_message(message):
