@@ -3,7 +3,7 @@ from os import environ as env
 from re import compile
 
 import aiohttp
-from nextcord.ext import commands
+from nextcord.ext import commands, errors
 
 bot = commands.Bot("=")
 bot.load_extension("jishaku")
