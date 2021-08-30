@@ -17,27 +17,29 @@ async def on_command_error(ctx,error):
     if isinstance(error, errors.MissingRequiredArgument):
         await ctx.channel.send("You are missing a required argument.")
         return
-    if isinstance(error, errors.CommandNotFound):
+    elif isinstance(error, errors.CommandNotFound):
         await ctx.channel.send("This command does not exist.")
         return
-    if isinstance(error, errors.TooManyArguments):
+    elif isinstance(error, errors.TooManyArguments):
 	await ctx.channel.send("You are giving too many arguments!")
 	return
-    if isinstance(error,errors.BadArgument):
+    elif isinstance(error,errors.BadArgument):
 	await ctx.channel.send("The library ran into an error attempting to parse your argument.")
 	return
-    await ctx.channel.send("This command raised an exception: " + str(error))
 
+    else:
+        await ctx.channel.send("This command raised an exception: " + str(error))
 
 
 @bot.listen()
 async def on_message(message):
-    if (result := issue_regex.search(message.content)):
+    if result := issue_regex.search(message.content):
         issue_id = result.groups()[0]
         await message.channel.send(f"https://github.com/nextcord/nextcord/issues/{issue_id}")
-    if (result := discord_regex.search(message.content)):
+    if result := discord_regex.search(message.content):
         issue_id = result.groups()[0]
         await message.channel.send(f"https://github.com/rapptz/discord.py/issues/{issue_id}")
+
 
 @bot.command()
 async def todo(ctx):
@@ -45,13 +47,14 @@ async def todo(ctx):
 
 for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
-        bot.load_extension(f"cogs.{filename[:-3]}") 
+        bot.load_extension(f"cogs.{filename[:-3]}")
     else:
         if os.path.isfile(filename):
-            print(f"Unable to load {filename[:-3]}") 
+            print(f"Unable to load {filename[:-3]}")
+
 
 async def startup():
-	bot.session = aiohttp.ClientSession()
+    bot.session = aiohttp.ClientSession()
 
 bot.loop.create_task(startup())
 bot.run(env["TOKEN"])
