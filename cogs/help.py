@@ -17,10 +17,9 @@ class HelpView(ui.View):
     async def python_help(self, _, interaction: Interaction):
         await self.create_help_thread("Python", interaction)
     async def create_help_thread(self, name, interaction):
-        await interaction.channel.create_thread(name=f"{name} help ({interaction.user})", type=ChannelType.public_thread)
-        thread = await interaction.response.send_message("Created!", ephemeral=True)
-        if thread is not None: # Bug in nextcord atm
-            await thread.add_user(interaction.user)
+        thread = await interaction.channel.create_thread(name=f"{name} help ({interaction.user})", type=ChannelType.public_thread)
+        await interaction.response.send_message("Created!", ephemeral=True)
+        await thread.add_user(interaction.user)
 
 class HelpCog(commands.Cog):
     def __init__(self, bot):
