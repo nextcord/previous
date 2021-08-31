@@ -158,7 +158,7 @@ class Rtfm(commands.Cog):
     @commands.command(help="delete cache of rtfm (owner only)", aliases=["purge-rtfm", "delrtfm"])
     @commands.is_owner()
     async def rtfmcache(self, ctx: commands.Context):
-        del self.bot._rtfm_cache
+        del self._rtfm_cache
         embed = discord.Embed(title="Purged rtfm cache.", color=discord.Color.blurple())
         await ctx.send(embed=embed)
 
