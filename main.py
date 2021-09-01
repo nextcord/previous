@@ -3,17 +3,20 @@ from os import environ as env
 from re import compile
 
 import aiohttp
+from nextcord import Intents
 from nextcord.ext import commands
 from nextcord.ext.commands import errors
 
-bot = commands.Bot("=")
+intents = Intents.all()
+intents.presences = False
+
+bot = commands.Bot("=", intents=intents)
 bot.load_extension("jishaku")
 
 issue_regex = compile(r"##(\d+)")
 discord_regex = compile(r"#!(\d+)")
 @bot.event
 async def on_command_error(ctx,error):
-    
     if isinstance(error, errors.CommandNotFound):
         await ctx.channel.send("This command does not exist.")
         return
