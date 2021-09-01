@@ -22,10 +22,7 @@ class HelpView(ui.View):
         thread = await interaction.channel.create_thread(name=f"{name} help ({interaction.user})", type=ChannelType.public_thread)
         await interaction.response.send_message("Created!", ephemeral=True)
         await thread.add_user(interaction.user)
-        for user in interaction.guild.members:
-            if 882192899519954944 in [role.id for role in user.roles]:
-                await thread.add_user(user)
-        await thread.send(f"Alright now that we are all here to help, what do you need help with {interaction.user.mention}?")
+        await thread.send(f"<@&882192899519954944> Help needed!\nAlright now that we are all here to help, what do you need help with {interaction.user.mention}?")
 
 class HelpCog(commands.Cog):
     def __init__(self, bot):
