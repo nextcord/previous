@@ -56,7 +56,7 @@ class HelpCog(commands.Cog):
         if help_role in ctx.author.roles or history_flat[0].mentions[0].id == ctx.author.id:
             if isinstance(ctx.channel, nextcord.Thread) and ctx.channel.parent_id == self.help_channel:
                 await ctx.send("This thread has now been closed. Please create another thread if you wish to ask another question.")
-                await ctx.channel.edit(locked=True)
+                await ctx.channel.edit(locked=True, archived=True)
                 await log_channel.send(f"Help thread {ctx.channel.name} (created by {history_flat[0].mentions[0].name}) has been closed.")
 
 
