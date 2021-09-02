@@ -46,11 +46,14 @@ class HelpCog(commands.Cog):
         await ctx.send("Click a button to create a help thread!", view=HelpView())
 
     @commands.command()
-    @commands.has_permissions(manage_messages=True)
     async def close(self, ctx):
-        if isinstance(ctx.channel, nextcord.Thread) and ctx.channel.parent_id == self.help_channel:
-            ctx.channel.archived = True
-            await ctx.send("This thread has now been closed. Please create another thread if you wish to ask another question.")
+        history = ctx.channel.history(oldest_first=True, limit=1)
+        history_flat = await history.flatten()
+        help_role = nextcord.utils.find(lambda r: r.name == 'My help is bad', ctx.message.guild.roles)
+        if help_role in ctx.author.roles or history_flat[0].mentions[0].id == ctx.author.id:
+            if isinstance(ctx.channel, nextcord.Thread) and ctx.channel.parent_id == self.help_channel:
+                await ctx.channel.edit(archived=True)
+                await ctx.send("This thread has now been closed. Please create another thread if you wish to ask another question.")
 
 def setup(bot):
     bot.add_cog(HelpCog(bot))
