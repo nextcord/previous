@@ -40,11 +40,17 @@ class HelpCog(commands.Cog):
         if message.channel.id == self.help_channel and message.type == MessageType.thread_created:
             await message.delete(delay=5)
 
-
     @commands.command()
     @commands.is_owner()
     async def help_menu(self, ctx):
         await ctx.send("Click a button to create a help thread!", view=HelpView())
+
+    @commands.command()
+    @commands.has_permissions(manage_messages=True)
+    async def close(self, ctx):
+        if isinstance(ctx.channel, nextcord.Thread) and ctx.channel.parent_id == self.help_channel:
+            ctx.channel.archived = True
+            await ctx.send("This thread has now been closed. Please create another thread if you wish to ask another question.")
 
 def setup(bot):
     bot.add_cog(HelpCog(bot))
