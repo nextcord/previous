@@ -49,11 +49,14 @@ class HelpCog(commands.Cog):
     async def close(self, ctx):
         history = ctx.channel.history(oldest_first=True, limit=1)
         history_flat = await history.flatten()
+        moderator_channel = nextcord.utils.get(ctx.guild.channels, name='help_logs')
         help_role = nextcord.utils.find(lambda r: r.name == 'My help is bad', ctx.message.guild.roles)
         if help_role in ctx.author.roles or history_flat[0].mentions[0].id == ctx.author.id:
             if isinstance(ctx.channel, nextcord.Thread) and ctx.channel.parent_id == self.help_channel:
-                await ctx.channel.edit(archived=True)
+                await ctx.channel.edit(locked=True)
                 await ctx.send("This thread has now been closed. Please create another thread if you wish to ask another question.")
+                await moderator_channel.send(f"Help thread {ctx.channel.name} (created by {history_flat[0].mentions[0].name}) has been closed.")
+
 
 def setup(bot):
     bot.add_cog(HelpCog(bot))
