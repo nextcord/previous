@@ -29,7 +29,7 @@ async def on_command_error(ctx,error):
     elif isinstance(error, errors.MissingRequiredArgument):
         await ctx.channel.send("You're missing a required argument.")
     else:
-        await ctx.channel.send("This command raised an exception: " + str(error))
+        await ctx.channel.send("This command raised an exception: " + str(type(error) + ":" + str(error))
 
 @bot.listen()
 async def on_message(message):
