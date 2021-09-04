@@ -3,56 +3,52 @@ from nextcord.ext import commands
 import nextcord
 
 
-help_topic = 'None'
-
-class Help_buttons(nextcord.ui.View):
+class HelpView(nextcord.ui.View):
     
-    # Nextcord help butoon
-    @nextcord.ui.button(label='Nextcord Help?', style=nextcord.ButtonStyle.red)
-    async def Nextcord(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        view = Confirmation()
+    @nextcord.ui.button(label='Nextcord Help?', style=nextcord.ButtonStyle.green)
+    async def nextcord_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        view = Confirmation('Nextcord')
         await interaction.response.send_message('Click "Yes!" to create the thread.', view=view, ephemeral=True)
-        global help_topic
-        help_topic = 'Nextcord'
-
-    # Discord.py help button
+        
+    
     @nextcord.ui.button(label='Discord.py libs Help?', style=nextcord.ButtonStyle.blurple)
-    async def d_py(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        view = Confirmation()
+    async def dpy(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        view = Confirmation('D.py')
         await interaction.response.send_message('Click "Yes!" to create the thread.', view=view, ephemeral=True)
-        global help_topic
-        help_topic = 'D.py'
-      
-    # Python help button
-    @nextcord.ui.button(label='Python Help?', style=nextcord.ButtonStyle.green)
-    async def Python(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        view = Confirmation()
+        
+    
+    @nextcord.ui.button(label='Python Help?', style=nextcord.ButtonStyle.red)
+    async def python(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        view = Confirmation('Python')
         await interaction.response.send_message('Click "Yes!" to create the thread.', view=view, ephemeral=True)
-        global help_topic
-        help_topic = 'Python'
         
-        
-class Confirmation(nextcord.ui.View):        
+   
+class Confirmation(nextcord.ui.View): 
+    
+    def __init__(self, channel_name):
+        super().__init__()
+        self.name = channel_name       
         
     @nextcord.ui.button(label='Yes!', style=nextcord.ButtonStyle.success)
-    async def Confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        await self.create_help_thread(name=self.name, interaction=interaction)
         await interaction.response.send_message('Created the thread', ephemeral=True)
-        thread = await interaction.channel.create_thread(name=f" {help_topic} help ({interaction.user})", type=ChannelType.public_thread)
-        await thread.add_user(interaction.user)
-        await thread.send(f'<@&882192899519954944> Help needed!\nAlright now that we are all here to help, what do you need help with {interaction.user.mention}?')
-        log_channel = nextcord.utils.get(interaction.guild.channels, name='help_logs')
-        await log_channel.send(f"{help_topic} help thread created by {interaction.user.mention}: {thread.mention}!")
         self.stop() 
         
     @nextcord.ui.button(label='Nah, I am sorry!', style=nextcord.ButtonStyle.danger)
-    async def Cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await interaction.response.send_message('Cancelled', ephemeral=True)
-        global help_topic
-        help_topic = 'None'
         self.stop() 
+    
+    
+    async def create_help_thread(self, name, interaction):
+        thread = await interaction.channel.create_thread(name=f"{name} help ({interaction.user})", type=ChannelType.public_thread)
+        await thread.add_user(interaction.user)
+        log_channel = nextcord.utils.get(interaction.guild.channels, name='help_logs')
+        await log_channel.send(f"Help thread for {name} created by {interaction.user.mention}: {thread.mention}!")
+        await thread.send(f"<@&882192899519954944> Help needed!\nAlright now that we are all here to help, what do you need help with {interaction.user.mention}?")
         
         
-
 class HelpCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -62,7 +58,7 @@ class HelpCog(commands.Cog):
     async def create_view(self):
         if getattr(self.bot, "help_view_set", False) is False:
             self.bot.help_view_set = True
-            self.bot.add_view(Help_buttons())
+            self.bot.add_view(HelpView())
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -72,7 +68,7 @@ class HelpCog(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def help_menu(self, ctx):
-        await ctx.send("Click a button to create a help thread!", view=Help_buttons())
+        await ctx.send("Click a button to create a help thread!", view=HelpView())
 
     @commands.command()
     async def close(self, ctx):
