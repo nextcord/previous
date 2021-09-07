@@ -8,19 +8,19 @@ class HelpView(nextcord.ui.View):
     @nextcord.ui.button(label='Nextcord Help?', style=nextcord.ButtonStyle.green)
     async def nextcord_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         view = Confirmation('Nextcord')
-        await interaction.response.send_message('Click "Yes!" to create the thread.', view=view, ephemeral=True)
+        await interaction.response.send_message('Are you really sure you want to make a help thread?', view=view, ephemeral=True)
         
     
     @nextcord.ui.button(label='Discord.py libs Help?', style=nextcord.ButtonStyle.blurple)
     async def dpy(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         view = Confirmation('D.py')
-        await interaction.response.send_message('Click "Yes!" to create the thread.', view=view, ephemeral=True)
+        await interaction.response.send_message('Are you really sure you want to make a help thread?.', view=view, ephemeral=True)
         
     
     @nextcord.ui.button(label='Python Help?', style=nextcord.ButtonStyle.red)
     async def python(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         view = Confirmation('Python')
-        await interaction.response.send_message('Click "Yes!" to create the thread.', view=view, ephemeral=True)
+        await interaction.response.send_message('Are you really sure you want to make a help thread?', view=view, ephemeral=True)
         
    
 class Confirmation(nextcord.ui.View): 
@@ -29,15 +29,14 @@ class Confirmation(nextcord.ui.View):
         super().__init__()
         self.name = channel_name       
         
-    @nextcord.ui.button(label='Yes!', style=nextcord.ButtonStyle.success)
+    @nextcord.ui.button(label='Yes', style=nextcord.ButtonStyle.success)
     async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await self.create_help_thread(name=self.name, interaction=interaction)
         await interaction.response.send_message('Created the thread', ephemeral=True)
         self.stop() 
         
-    @nextcord.ui.button(label='Nah, I am sorry!', style=nextcord.ButtonStyle.danger)
+    @nextcord.ui.button(label='No', style=nextcord.ButtonStyle.danger)
     async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        await interaction.response.send_message('Cancelled', ephemeral=True)
         self.stop() 
     
     
