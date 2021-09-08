@@ -395,3 +395,5 @@ class Etc(commands.Cog):
             return await ctx.send('Output too long to display.')
         await ctx.send(msg)
 
+def setup(bot):
+    bot.add_cog(Etc())
