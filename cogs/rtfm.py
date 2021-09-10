@@ -381,10 +381,10 @@ import re
 import zlib
 from typing import Dict
 
-import nextcord as discord
+import nextcord
 from nextcord.ext import commands
 
-from .utils import fuzzy
+from utils import fuzzy
 
 
 class SphinxObjectFileReader:
@@ -422,7 +422,7 @@ class SphinxObjectFileReader:
 
 class Rtfm(commands.Cog):
     # full credit to https://github.com/Rapptz/RoboDanny
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     def parse_object_inv(self, stream: SphinxObjectFileReader, url: str) -> Dict:
@@ -499,7 +499,7 @@ class Rtfm(commands.Cog):
         if key.startswith('master'):
             # point the abc.Messageable types properly:
             q = obj.lower()
-            for name in dir(discord.abc.Messageable):
+            for name in dir(nextcord.abc.Messageable):
                 if name[0] == '_':
                     continue
                 if q == name:
@@ -513,14 +513,14 @@ class Rtfm(commands.Cog):
 
         matches = fuzzy.finder(obj, cache, key=lambda t: t[0], lazy=False)[:8]
 
-        e = discord.Embed(colour=discord.Colour.blurple())
+        e = nextcord.Embed(colour=nextcord.Colour.blurple())
         if len(matches) == 0:
             return await ctx.send('Could not find anything. Sorry.')
 
         e.description = '\n'.join(f'[`{key}`]({url})' for key, url in matches)
         ref = ctx.message.reference
         refer = None
-        if ref and isinstance(ref.resolved, discord.Message):
+        if ref and isinstance(ref.resolved, nextcord.Message):
             refer = ref.resolved.to_reference()
         await ctx.send(embed=e, reference=refer)
 
@@ -536,8 +536,8 @@ class Rtfm(commands.Cog):
     @commands.is_owner()
     async def rtfmcache(self, ctx: commands.Context):
         del self._rtfm_cache
-        embed = discord.Embed(title="Purged rtfm cache.", color=discord.Color.blurple())
+        embed = nextcord.Embed(title="Purged rtfm cache.", color=nextcord.Color.blurple())
         await ctx.send(embed=embed)
 
-def setup(bot):
+def setup(bot: commands.Bot):
     bot.add_cog(Rtfm(bot))

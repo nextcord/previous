@@ -375,12 +375,14 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 """ # R. Danny (https://github.com/Rapptz/RoboDanny) license
 
 import unicodedata
-from discord.ext import commands
+from nextcord.ext import commands
 
 class Etc(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
     @commands.command()
-    async def charinfo(self, ctx, *, characters: str):
+    async def charinfo(self, ctx: commands.Context, *, characters: str):
         """
         Shows you information about a number of characters.
         Only up to 25 characters at a time.
@@ -395,5 +397,6 @@ class Etc(commands.Cog):
             return await ctx.send('Output too long to display.')
         await ctx.send(msg)
 
-def setup(bot):
-    bot.add_cog(Etc())
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Etc(bot))
