@@ -424,6 +424,8 @@ class Rtfm(commands.Cog):
     # full credit to https://github.com/Rapptz/RoboDanny
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.name = "Read the friggin manual(rtfd)"
+        self.description = "Documentation commands."
 
     def parse_object_inv(self, stream: SphinxObjectFileReader, url: str) -> Dict:
         result = {}
@@ -532,7 +534,7 @@ class Rtfm(commands.Cog):
     async def rtfm_python_cmd(self, ctx: commands.Context, *, obj: str = None):
         await self.do_rtfm(ctx, "python", obj)
 
-    @commands.command(help="delete cache of rtfm (owner only)", aliases=["purge-rtfm", "delrtfm"])
+    @commands.command(hidden=True, help="delete cache of rtfm (owner only)", aliases=["purge-rtfm", "delrtfm"])
     @commands.is_owner()
     async def rtfmcache(self, ctx: commands.Context):
         del self._rtfm_cache

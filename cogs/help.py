@@ -1,10 +1,12 @@
-from nextcord import ui, ButtonStyle, ChannelType, \
+from nextcord import ButtonStyle, ChannelType, \
     Interaction, MessageType, Thread, TextChannel, \
-    Role, Message
+    Role, Message, Embed, Colour, HTTPException
 from nextcord.ext import commands
 from nextcord.ui import View, button, Button
 from nextcord.utils import get, find
+import re
 
+NO_HELP_COGS = ()
 
 class HelpView(View):
     def __init__(self):
@@ -39,6 +41,8 @@ class HelpView(View):
 class HelpCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.name = "Help"
+        self.description = "Commands to get help in this server."
         self.help_channel: int = 881965127031722004
         self.bot.loop.create_task(self.create_view())
 
@@ -52,12 +56,12 @@ class HelpCog(commands.Cog):
         if message.channel.id == self.help_channel and message.type == MessageType.thread_created:
             await message.delete(delay=5)
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def help_menu(self, ctx: commands.Context):
         await ctx.send("Click a button to create a help thread!", view=HelpView())
 
-    @commands.command()
+    @commands.command(name="Close", aliases=['cs'])
     async def close(self, ctx: commands.Context):
         history = ctx.channel.history(oldest_first=True, limit=1)
         if isinstance(ctx.channel, Thread) and ctx.channel.parent_id == self.help_channel:
@@ -70,6 +74,62 @@ class HelpCog(commands.Cog):
                 await ctx.channel.edit(locked=True, archived=True)
                 await log_channel.send(
                     f"Help thread {ctx.channel.name} (created by {history_flat[0].mentions[0].name}) has been closed.")
+
+    @commands.command(name='Help', aliases=['hp'],
+             help="Displays the commands of me.",
+             usage="help|hp (command|command alias|category|category alias)")
+    async def help(self, ctx: Context, *, arg: Optional[str]):
+        bot: Bot = self.bot
+        icon = ctx.author.avatar.url
+        help_col = Colour.random()
+        try:
+            if not arg:
+                help = Embed(title='Category Listing',
+                             description='Use `$help <category>` to get a list of commands in them!',
+                             colour=help_col).set_footer(icon_url=icon,
+                                                         text="Note: The 2-4 letter words in brackets are short forms of the categories. You can do $help <short form> if you wish.")
+                for cog in bot.cogs.values():
+                    if cog.name.lower() not in NO_HELP_COGS:
+                        help.add_field(
+                            value=f'[`Hover for description`](https://discord.gg/ZebatWssCB "{cog.description}")',
+                            name=f'{cog.name}')
+                await ctx.reply(embed=help)
+            else:
+                found = False
+                for cog in bot.cogs.values():
+                    if re.search(fr"({arg.lower()})", cog.name.lower()) and cog.name.lower() not in NO_HELP_COGS:
+                        formatted_cog_name = re.sub(r"\(.+\)", "", cog.name)
+                        help = Embed(title=f'{formatted_cog_name} - `Command Listing`',
+                                     description=f"Use `$help <command>` for more details on a specific command\n{cog.description}\n",
+                                     colour=help_col)
+                        for _commands in cog.get_commands():
+                            if not _commands.hidden:
+                                help.add_field(name=_commands.name,
+                                               value=f'[`Hover for description`](https://discord.gg/zt6j4h7ep3 "{_commands.help}")',
+                                               inline=True)
+                        found = True
+                if not found:
+                    for _command in bot.commands:
+                        for alias in _command.aliases:
+                            if arg.lower() in (_command.name.lower(), alias.lower()):
+                                help = Embed(title=_command.name.title(),
+                                             description=f"`{_command.help}`", colour=help_col)
+                                help.add_field(name='Syntax:', value=f"`{_command.usage}`")
+                                help.add_field(name='Aliases:', value=f"`{', '.join(_command.aliases)}`")
+                                help.add_field(name='Cooldown period:',
+                                               value=f"`{_command._buckets._cooldown.per}` seconds") if _command._buckets._cooldown else None
+                                help.set_footer(text=
+                                                """
+<> - required, () - optional, | - or    
+Note: You do not need to actually put <> and () around the inputs they are for understanding purposes only
+\n""", icon_url=icon)
+                                found = True
+                if not found:
+                    help = Embed(title='Error!', description=f'How do you even use "{arg}"?',
+                                 color=Colour.red())
+                await ctx.reply(embed=help)
+        except HTTPException:
+            pass
 
 
 def setup(bot: commands.Bot):

@@ -11,7 +11,7 @@ intents = Intents.all()
 intents.presences = False
 
 bot = commands.Bot("=", intents=intents)
-
+bot.remove_command("help")
 bot.load_extension("jishaku")
 
 issue_regex = compile(r"##(\d+)")

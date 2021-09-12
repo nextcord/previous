@@ -374,12 +374,17 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 """ # R. Danny (https://github.com/Rapptz/RoboDanny) license
 
+from typing import Optional
 import unicodedata
+
+import nextcord
 from nextcord.ext import commands
 
 class Etc(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.name = "Etectera(etc)"
+        self.description = "Random stuff... 'Etcetera'!"
 
     @commands.command()
     async def charinfo(self, ctx: commands.Context, *, characters: str):
@@ -396,6 +401,12 @@ class Etc(commands.Cog):
         if len(msg) > 2000:
             return await ctx.send('Output too long to display.')
         await ctx.send(msg)
+
+    @commands.command(name="Profilepic", aliases=['pfp'])
+    async def _pfp(self, ctx: commands.Context, user: Optional[User]):
+        user = await commands.UserConverter().convert(ctx, user) if user else ctx.author
+        user = await self.bot.fetch_user(user.id)
+        await ctx.send(embed=nextcord.Embed(description='_ _', type="ok", colour=""))
 
 
 def setup(bot: commands.Bot):
