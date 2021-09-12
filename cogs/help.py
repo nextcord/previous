@@ -85,9 +85,9 @@ class HelpCog(commands.Cog):
         try:
             if not arg:
                 help = Embed(title='Category Listing',
-                             description='Use `$help <category>` to get a list of commands in them!',
+                             description='Use `=help <category>` to get a list of commands in them!',
                              colour=help_col).set_footer(icon_url=icon,
-                                                         text="Note: The 2-4 letter words in brackets are short forms of the categories. You can do $help <short form> if you wish.")
+                                                         text="Note: The 2-4 letter words in brackets are short forms of the categories. You can do =help <short form> if you wish.")
                 for cog in bot.cogs.values():
                     if cog.name.lower() not in NO_HELP_COGS:
                         help.add_field(
@@ -100,7 +100,7 @@ class HelpCog(commands.Cog):
                     if re.search(fr"({arg.lower()})", cog.name.lower()) and cog.name.lower() not in NO_HELP_COGS:
                         formatted_cog_name = re.sub(r"\(.+\)", "", cog.name)
                         help = Embed(title=f'{formatted_cog_name} - `Command Listing`',
-                                     description=f"Use `$help <command>` for more details on a specific command\n{cog.description}\n",
+                                     description=f"Use `=help <command>` for more details on a specific command\n{cog.description}\n",
                                      colour=help_col)
                         for _commands in cog.get_commands():
                             if not _commands.hidden:
