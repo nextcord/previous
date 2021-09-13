@@ -63,5 +63,4 @@ async def startup():
 
 
 bot.loop.create_task(startup())
-#bot.run(env["TOKEN"])
-bot.run("ODg3MDAzNzAwNzgxMDIzMjky.YT90kQ.TXN33dbr7M9rHqfKD_UApRdmt-Q")
+bot.run(env["TOKEN"])
