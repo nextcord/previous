@@ -539,5 +539,6 @@ class Rtfm(commands.Cog):
         embed = discord.Embed(title="Purged rtfm cache.", color=discord.Color.blurple())
         await ctx.send(embed=embed)
 
+
 def setup(bot):
     bot.add_cog(Rtfm(bot))
