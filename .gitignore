@@ -2,3 +2,5 @@
 #.history/ folder in gitignore is here for vscode users like me :)
 .history/
 *.pyc
+# pycharm :)
+.idea
