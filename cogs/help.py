@@ -6,11 +6,12 @@ from nextcord.ext import commands
 HELP_CHANNEL_ID: int = 881965127031722004
 HELP_LOGS_CHANNEL_ID: int = 883035085434142781
 HELPER_ROLE_ID: int = 882192899519954944
+CUSTOM_ID_PREFIX: str = "help:"
 
 
 class HelpButton(ui.Button["HelpView"]):
     def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str):
-        super().__init__(label = f"{help_type} help", style = style, custom_id = custom_id)
+        super().__init__(label = f"{help_type} help", style = style, custom_id = f"{CUSTOM_ID_PREFIX}{custom_id}")
         self._help_type = help_type
 
     async def create_help_thread(self, interaction: Interaction) -> None:
@@ -20,33 +21,31 @@ class HelpButton(ui.Button["HelpView"]):
             name = f"{name} help ({interaction.user})",
             type = ChannelType.public_thread
         )
-        # don't need this since the ping already adds them.
-        # await thread.add_user(interaction.user)
 
-        log_channel = interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID)
-        await log_channel.send(f"Help thread for {name} created by {interaction.user.mention}: {thread.mention}!")
+        await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
+            content = f"Help thread for {name} created by {interaction.user.mention}: {thread.mention}!"
+        )
         close_button_view = ThreadCloseView()
         close_button_view._thread_author = interaction.user
 
         name_to_colour: Dict[str, Colour] = {
-            "Discord.py libraries": Colour.light_gray,
+            "Discord.py libraries": Colour.light_gray(),
             "Nextcord": Colour.red(),
             "Python": Colour.green()
         }
         em = Embed(
             title = f"{name} Help needed!",
-            description = f"Alright now that we are all here to help, "
-                          f"what do you need help with {interaction.user.mention}?",
+            description = f"Alright now that we are all here to help, what do you need help with?",
             colour = name_to_colour[name]
         )
-        em.set_footer(text = "Helpers or You can click the Close button to close this thread.")
+        em.set_footer(text = "You and the helpers can close this thread with the button")
 
         msg = await thread.send(
-            f"<@&{HELPER_ROLE_ID}> | {interaction.user.mention}",
+            content = f"<@&{HELPER_ROLE_ID}> | {interaction.user.mention}",
             embed = em,
             view = ThreadCloseView()
         )
-        await msg.pin(reason = "First message in help thread with a close button.")
+        await msg.pin(reason = "First message in help thread with the close button.")
 
     async def callback(self, interaction: Interaction):
         confirm_view = ConfirmView()
@@ -55,41 +54,33 @@ class HelpButton(ui.Button["HelpView"]):
             for _item in confirm_view.children:
                 _item.disabled = True
 
-        await interaction.response.send_message(
-            content = "Are you really sure you want to make a help thread?",
-            ephemeral = True,
-            view = confirm_view
-        )
+        confirm_content = "Are you really sure you want to make a help thread?"
+        await interaction.response.send_message(content = confirm_content, ephemeral = True, view = confirm_view)
         await confirm_view.wait()
         if confirm_view.value is False or confirm_view.value is None:
             disable_all_buttons()
-            content = "Ok, cancelled." if confirm_view.value is False else \
-                "~~Are you really sure you want to make a help thread?~~ I guess not..."
-
+            content = "Ok, cancelled." if confirm_view.value is False else f"~~{confirm_content}~~ I guess not..."
             await interaction.edit_original_message(content = content, view = confirm_view)
         else:
             disable_all_buttons()
-            await interaction.edit_original_message(
-                content = "Created!",
-                view = confirm_view
-            )
+            await interaction.edit_original_message(content = "Created!", view = confirm_view)
             await self.create_help_thread(interaction)
 
 
 class HelpView(ui.View):
     def __init__(self):
         super().__init__(timeout = None)
-        self.add_item(HelpButton("Nextcord", style = ButtonStyle.red, custom_id = "help:nextcord"))
-        self.add_item(HelpButton("D.py libs", style = ButtonStyle.gray, custom_id = "help:dpylibs"))
-        self.add_item(HelpButton("Python", style = ButtonStyle.green, custom_id = "help:python"))
+        self.add_item(HelpButton("Nextcord", style = ButtonStyle.red, custom_id = "nextcord"))
+        self.add_item(HelpButton("D.py libs", style = ButtonStyle.gray, custom_id = "dpylibs"))
+        self.add_item(HelpButton("Python", style = ButtonStyle.green, custom_id = "python"))
 
 
 class ConfirmButton(ui.Button["ConfirmView"]):
     def __init__(self, label: str, style: ButtonStyle, *, custom_id: str):
-        super().__init__(label = label, style = style, custom_id = custom_id)
+        super().__init__(label = label, style = style, custom_id = f"{CUSTOM_ID_PREFIX}{custom_id}")
 
     async def callback(self, interaction: Interaction):
-        self.view.value = True if self.custom_id == "confirm_button" else False
+        self.view.value = True if self.custom_id == f"{CUSTOM_ID_PREFIX}confirm_button" else False
         self.view.stop()
 
 
@@ -107,38 +98,39 @@ class ThreadCloseView(ui.View):
         self._thread_author: Optional[Member] = None
 
     # eww but need it for this view to be persistent.
-    async def get_thread_author(self, channel: Thread) -> Optional[Member]:
+    async def _get_thread_author(self, channel: Thread) -> None:
         history = channel.history(oldest_first = True, limit = 1)
         history_flat = await history.flatten()
         user = history_flat[0].mentions[0]
+
         self._thread_author = user
 
-        return self._thread_author
-
-    @ui.button(label = "Close", style = ButtonStyle.red, custom_id = "help_thread_close_button")
+    @ui.button(label = "Close", style = ButtonStyle.red, custom_id = f"{CUSTOM_ID_PREFIX}thread_close")
     async def thread_close_button(self, button: Button, interaction: Interaction):
         if not self._thread_author:
-            await self.get_thread_author(interaction.channel)  # type: ignore
+            await self._get_thread_author(interaction.channel)  # type: ignore
 
-        log_channel = interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID)
         await interaction.channel.send(
-            "This thread has now been closed. Please create another thread if you wish to ask another question."
+            content = "This thread has now been closed. "
+                      "Please create another thread if you wish to ask another question."
         )
         button.disabled = True
         await interaction.message.edit(view = self)
         self.stop()
         await interaction.channel.edit(locked = True, archived = True)
-        await log_channel.send(
-            f"Help thread {interaction.channel.name} (created by {self._thread_author.name}) has been closed."
+        await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
+            content = f"Help thread {interaction.channel.name} (created by {self._thread_author.name}) has been closed."
         )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
-        thread_author = self._thread_author or await self.get_thread_author(interaction.channel)  # type: ignore
-        # because we aren't assigning the persistent view to a message_id idk.
+        if not self._thread_author:
+            await self._get_thread_author(interaction.channel)  # type: ignore
+
+        # because we aren't assigning the persistent view to a message_id.
         if not isinstance(interaction.channel, Thread) or interaction.channel.parent_id != HELP_CHANNEL_ID:
             return False
 
-        return interaction.user.id == thread_author.id or interaction.user.get_role(HELPER_ROLE_ID)
+        return interaction.user.id == self._thread_author.id or interaction.user.get_role(HELPER_ROLE_ID)
 
 
 class HelpCog(commands.Cog):
