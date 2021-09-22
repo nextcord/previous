@@ -3,33 +3,37 @@ from os import environ as env
 from re import compile
 
 import aiohttp
+import nextcord
 from nextcord import Intents
 from nextcord.ext import commands
 from nextcord.ext.commands import errors
 
-intents = Intents.all()
-intents.presences = False
-
-bot = commands.Bot("=", intents=intents)
+bot = commands.Bot("=", intents = Intents(messages = True, guilds = True, members = True))
 bot.load_extension("jishaku")
 
 issue_regex = compile(r"##(\d+)")
 discord_regex = compile(r"#!(\d+)")
+
+
 @bot.event
-async def on_command_error(ctx,error):
+async def on_command_error(ctx, error):
     if isinstance(error, errors.CommandNotFound):
         await ctx.channel.send("This command does not exist.")
         return
     elif isinstance(error, errors.TooManyArguments):
-	    await ctx.channel.send("You are giving too many arguments!")
-	    return
-    elif isinstance(error,errors.BadArgument):
-	    await ctx.channel.send("The library ran into an error attempting to parse your argument.")
-	    return
+        await ctx.channel.send("You are giving too many arguments!")
+        return
+    elif isinstance(error, errors.BadArgument):
+        await ctx.channel.send("The library ran into an error attempting to parse your argument.")
+        return
     elif isinstance(error, errors.MissingRequiredArgument):
         await ctx.channel.send("You're missing a required argument.")
+    # kinda annoying and useless error.
+    elif isinstance(error, nextcord.NotFound) and "Unknown interaction" in str(error):
+        return
     else:
-        await ctx.channel.send("This command raised an exception: " + str(type(error) + ":" + str(error))
+        await ctx.channel.send("This command raised an exception: " + str(type(error) + ":" + str(error)))
+
 
 @bot.listen()
 async def on_message(message):
@@ -45,6 +49,7 @@ async def on_message(message):
 async def todo(ctx):
     await ctx.send("https://github.com/nextcord/nextcord/projects/1 and going through all the issues")
 
+
 for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
         bot.load_extension(f"cogs.{filename[:-3]}")
@@ -55,6 +60,7 @@ for filename in os.listdir("./cogs"):
 
 async def startup():
     bot.session = aiohttp.ClientSession()
+
 
 bot.loop.create_task(startup())
 bot.run(env["TOKEN"])
