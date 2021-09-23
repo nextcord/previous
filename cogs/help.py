@@ -175,6 +175,9 @@ class HelpCog(commands.Cog):
             return
 
         thread_author = await get_thread_author(thread)
+        if member.id != thread_author.id:
+            return
+
         FakeContext = NamedTuple("FakeContext", [("channel", Thread), ("author", Member), ("guild", Guild)])
 
         # _self represents the cog. Thanks Epic#6666
@@ -182,8 +185,7 @@ class HelpCog(commands.Cog):
             return await thread.send(*args, **kwargs)
 
         FakeContext.send = fake_send
-        if member.id == thread_author.id:
-            await self.close(FakeContext(thread, thread_author, thread.guild))
+        await self.close(FakeContext(thread, thread_author, thread.guild))
 
     @commands.command()
     @commands.is_owner()
