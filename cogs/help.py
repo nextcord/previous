@@ -1,12 +1,32 @@
-from typing import Dict, Optional
+from typing import Dict, NamedTuple, Optional
 
-from nextcord import Button, ButtonStyle, ChannelType, Colour, Embed, Interaction, Member, MessageType, Thread, ui
 from nextcord.ext import commands
+from nextcord import (
+    Button,
+    ButtonStyle,
+    ChannelType,
+    Colour,
+    Embed,
+    Guild,
+    Interaction,
+    Member,
+    MessageType,
+    Thread,
+    ThreadMember,
+    ui
+)
 
 HELP_CHANNEL_ID: int = 881965127031722004
 HELP_LOGS_CHANNEL_ID: int = 883035085434142781
 HELPER_ROLE_ID: int = 882192899519954944
 CUSTOM_ID_PREFIX: str = "help:"
+
+
+async def get_thread_author(channel: Thread) -> Member:
+    history = channel.history(oldest_first = True, limit = 1)
+    history_flat = await history.flatten()
+    user = history_flat[0].mentions[0]
+    return user
 
 
 class HelpButton(ui.Button["HelpView"]):
@@ -97,13 +117,8 @@ class ThreadCloseView(ui.View):
         super().__init__(timeout = None)
         self._thread_author: Optional[Member] = None
 
-    # eww but need it for this view to be persistent.
     async def _get_thread_author(self, channel: Thread) -> None:
-        history = channel.history(oldest_first = True, limit = 1)
-        history_flat = await history.flatten()
-        user = history_flat[0].mentions[0]
-
-        self._thread_author = user
+        self._thread_author = await get_thread_author(channel)
 
     @ui.button(label = "Close", style = ButtonStyle.red, custom_id = f"{CUSTOM_ID_PREFIX}thread_close")
     async def thread_close_button(self, button: Button, interaction: Interaction):
@@ -153,6 +168,23 @@ class HelpCog(commands.Cog):
                 message.type is MessageType.pins_add:
             await message.delete(delay = 10)
 
+    @commands.Cog.listener()
+    async def on_thread_member_remove(self, member: ThreadMember):
+        thread = member.thread
+        if thread.parent_id != HELP_CHANNEL_ID:
+            return
+
+        thread_author = await get_thread_author(thread)
+        FakeContext = NamedTuple("FakeContext", [("channel", Thread), ("author", Member), ("guild", Guild)])
+
+        # _self represents the cog. Thanks Epic#6666
+        async def fake_send(_self, *args, **kwargs):
+            return await thread.send(*args, **kwargs)
+
+        FakeContext.send = fake_send
+        if member.id == thread_author.id:
+            await self.close(FakeContext(thread, thread_author, thread.guild))
+
     @commands.command()
     @commands.is_owner()
     async def help_menu(self, ctx):
@@ -163,15 +195,13 @@ class HelpCog(commands.Cog):
         if not isinstance(ctx.channel, Thread) or ctx.channel.parent_id != HELP_CHANNEL_ID:
             return
 
-        history = ctx.channel.history(oldest_first = True, limit = 1)
-        history_flat = await history.flatten()
-
-        if history_flat[0].mentions[0].id == ctx.author.id or ctx.author.get_role(HELPER_ROLE_ID):
+        thread_author = await get_thread_author(ctx.channel)
+        if thread_author.id == ctx.author.id or ctx.author.get_role(HELPER_ROLE_ID):
             await ctx.send(
                 "This thread has now been closed. Please create another thread if you wish to ask another question.")
             await ctx.channel.edit(locked = True, archived = True)
             await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-                f"Help thread {ctx.channel.name} (created by {history_flat[0].mentions[0].name}) has been closed.")
+                f"Help thread {ctx.channel.name} (created by {thread_author.name}) has been closed.")
 
 
 def setup(bot):
