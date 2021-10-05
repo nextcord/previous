@@ -78,10 +78,7 @@ class HelpButton(ui.Button["HelpView"]):
                             f"(PS: If you are using discord-interactions for slash, please add [this cog]({GIST_URL} 'gist.github.com') "
                             "(link) to your files. It restores the on_socket_response removed in d.py v2.)"
             )
-            await interaction.response.send_message(
-                emve = emb,
-                emphermal = True
-            )
+            await interaction.response.send_message(embed=emb, ephemeral=True)
             return
 
         confirm_view = ConfirmView()
