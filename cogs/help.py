@@ -1,12 +1,32 @@
-from typing import Dict, Optional
+from typing import Dict, NamedTuple, Optional
 
-from nextcord import Button, ButtonStyle, ChannelType, Colour, Embed, Interaction, Member, MessageType, Thread, ui
 from nextcord.ext import commands
+from nextcord import (
+    Button,
+    ButtonStyle,
+    ChannelType,
+    Colour,
+    Embed,
+    Guild,
+    Interaction,
+    Member,
+    MessageType,
+    Thread,
+    ThreadMember,
+    ui
+)
 
 HELP_CHANNEL_ID: int = 881965127031722004
 HELP_LOGS_CHANNEL_ID: int = 883035085434142781
 HELPER_ROLE_ID: int = 882192899519954944
 CUSTOM_ID_PREFIX: str = "help:"
+
+
+async def get_thread_author(channel: Thread) -> Member:
+    history = channel.history(oldest_first = True, limit = 1)
+    history_flat = await history.flatten()
+    user = history_flat[0].mentions[0]
+    return user
 
 
 class HelpButton(ui.Button["HelpView"]):
@@ -15,28 +35,26 @@ class HelpButton(ui.Button["HelpView"]):
         self._help_type = help_type
 
     async def create_help_thread(self, interaction: Interaction) -> None:
-        name = "Discord.py libraries" if self._help_type == "D.py libs" else self._help_type
-
         thread = await interaction.channel.create_thread(
-            name = f"{name} help ({interaction.user})",
+            name = f"{self._help_type} help ({interaction.user})",
             type = ChannelType.public_thread
         )
 
         await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-            content = f"Help thread for {name} created by {interaction.user.mention}: {thread.mention}!"
+            content = f"Help thread for {self._help_type} created by {interaction.user.mention}: {thread.mention}!"
         )
         close_button_view = ThreadCloseView()
         close_button_view._thread_author = interaction.user
 
-        name_to_colour: Dict[str, Colour] = {
-            "Discord.py libraries": Colour.light_gray(),
+        type_to_colour: Dict[str, Colour] = {
             "Nextcord": Colour.red(),
             "Python": Colour.green()
         }
+
         em = Embed(
-            title = f"{name} Help needed!",
+            title = f"{self._help_type} Help needed!",
             description = f"Alright now that we are all here to help, what do you need help with?",
-            colour = name_to_colour[name]
+            colour = type_to_colour.get(self._help_type, Colour.blurple())
         )
         em.set_footer(text = "You and the helpers can close this thread with the button")
 
@@ -48,6 +66,24 @@ class HelpButton(ui.Button["HelpView"]):
         await msg.pin(reason = "First message in help thread with the close button.")
 
     async def callback(self, interaction: Interaction):
+        if self.custom_id == f"{CUSTOM_ID_PREFIX}slashcmds":
+            GIST_URL = "https://gist.github.com/TAG-Epic/68e05d98a89982bac827ad2c3a60c50a"
+            REPO_URL = "https://github.com/nextcord/nextcord"
+            ETA_HYPER = f"[ETA]({REPO_URL} 'abbreviation for estimated time of arrival: the time you expect to arrive')"
+            emb = Embed(
+                title = "Slash Commands",
+                colour = Colour.blurple(),
+                description="Slash commands aren't in the main library yet. You can use discord-interactions w/ nextcord for a while. "
+                            "To check on the progress (or contribute) see the pins of <#881191158531899392>. No {ETA_HYPER} for now.\n\n"
+                            f"(PS: If you are using discord-interactions for slash, please add [this cog]({GIST_URL} 'gist.github.com') "
+                            "(link) to your files. It restores the on_socket_response removed in d.py v2.)"
+            )
+            await interaction.response.send_message(
+                emve = emb,
+                emphermal = True
+            )
+            return
+
         confirm_view = ConfirmView()
 
         def disable_all_buttons():
@@ -71,8 +107,8 @@ class HelpView(ui.View):
     def __init__(self):
         super().__init__(timeout = None)
         self.add_item(HelpButton("Nextcord", style = ButtonStyle.red, custom_id = "nextcord"))
-        self.add_item(HelpButton("D.py libs", style = ButtonStyle.gray, custom_id = "dpylibs"))
         self.add_item(HelpButton("Python", style = ButtonStyle.green, custom_id = "python"))
+        self.add_item(HelpButton("Slash Commands", style = ButtonStyle.blurple, custom_id = "slashcmds"))
 
 
 class ConfirmButton(ui.Button["ConfirmView"]):
@@ -97,13 +133,8 @@ class ThreadCloseView(ui.View):
         super().__init__(timeout = None)
         self._thread_author: Optional[Member] = None
 
-    # eww but need it for this view to be persistent.
     async def _get_thread_author(self, channel: Thread) -> None:
-        history = channel.history(oldest_first = True, limit = 1)
-        history_flat = await history.flatten()
-        user = history_flat[0].mentions[0]
-
-        self._thread_author = user
+        self._thread_author = await get_thread_author(channel)
 
     @ui.button(label = "Close", style = ButtonStyle.red, custom_id = f"{CUSTOM_ID_PREFIX}thread_close")
     async def thread_close_button(self, button: Button, interaction: Interaction):
@@ -153,6 +184,25 @@ class HelpCog(commands.Cog):
                 message.type is MessageType.pins_add:
             await message.delete(delay = 10)
 
+    @commands.Cog.listener()
+    async def on_thread_member_remove(self, member: ThreadMember):
+        thread = member.thread
+        if thread.parent_id != HELP_CHANNEL_ID:
+            return
+
+        thread_author = await get_thread_author(thread)
+        if member.id != thread_author.id:
+            return
+
+        FakeContext = NamedTuple("FakeContext", [("channel", Thread), ("author", Member), ("guild", Guild)])
+
+        # _self represents the cog. Thanks Epic#6666
+        async def fake_send(_self, *args, **kwargs):
+            return await thread.send(*args, **kwargs)
+
+        FakeContext.send = fake_send
+        await self.close(FakeContext(thread, thread_author, thread.guild))
+
     @commands.command()
     @commands.is_owner()
     async def help_menu(self, ctx):
@@ -163,15 +213,13 @@ class HelpCog(commands.Cog):
         if not isinstance(ctx.channel, Thread) or ctx.channel.parent_id != HELP_CHANNEL_ID:
             return
 
-        history = ctx.channel.history(oldest_first = True, limit = 1)
-        history_flat = await history.flatten()
-
-        if history_flat[0].mentions[0].id == ctx.author.id or ctx.author.get_role(HELPER_ROLE_ID):
+        thread_author = await get_thread_author(ctx.channel)
+        if thread_author.id == ctx.author.id or ctx.author.get_role(HELPER_ROLE_ID):
             await ctx.send(
                 "This thread has now been closed. Please create another thread if you wish to ask another question.")
             await ctx.channel.edit(locked = True, archived = True)
             await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-                f"Help thread {ctx.channel.name} (created by {history_flat[0].mentions[0].name}) has been closed.")
+                f"Help thread {ctx.channel.name} (created by {thread_author.name}) has been closed.")
 
 
 def setup(bot):
