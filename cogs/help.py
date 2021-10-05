@@ -68,15 +68,15 @@ class HelpButton(ui.Button["HelpView"]):
     async def callback(self, interaction: Interaction):
         if self.custom_id == f"{CUSTOM_ID_PREFIX}slashcmds":
             GIST_URL = "https://gist.github.com/TAG-Epic/68e05d98a89982bac827ad2c3a60c50a"
-            REPO_URL = "https://github.com/nextcord/nextcord"
-            ETA_HYPER = f"[ETA]({REPO_URL} 'abbreviation for estimated time of arrival: the time you expect to arrive')"
+            ETA_WIKI = "https://en.wikipedia.org/wiki/Estimated_time_of_arrival"
+            ETA_HYPER = f"[ETA]({ETA_WIKI} 'abbreviation for estimated time of arrival: the time you expect to arrive')"
             emb = Embed(
                 title = "Slash Commands",
                 colour = Colour.blurple(),
-                description="Slash commands aren't in the main library yet. You can use discord-interactions w/ nextcord for a while. "
+                description="Slash commands aren't in the main library yet. You can use discord-interactions w/ nextcord for now. "
                             "To check on the progress (or contribute) see the pins of <#881191158531899392>. No {ETA_HYPER} for now.\n\n"
                             f"(PS: If you are using discord-interactions for slash, please add [this cog]({GIST_URL} 'gist.github.com') "
-                            "(link) to your files. It restores the on_socket_response removed in d.py v2.)"
+                            "(link). It restores the on_socket_response removed in d.py v2.)"
             )
             await interaction.response.send_message(embed=emb, ephemeral=True)
             return
