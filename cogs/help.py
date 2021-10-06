@@ -76,7 +76,7 @@ class HelpButton(ui.Button["HelpView"]):
                 description="Slash commands aren't in the main library yet. You can use discord-interactions w/ nextcord for now. "
                             "To check on the progress (or contribute) see the pins of <#881191158531899392>. No {ETA_HYPER} for now.\n\n"
                             f"(PS: If you are using discord-interactions for slash, please add [this cog]({GIST_URL} 'gist.github.com') "
-                            "(link). It restores the on_socket_response removed in d.py v2.)"
+                            "(link). It restores the `on_socket_response` removed in d.py v2.)"
             )
             await interaction.response.send_message(embed=emb, ephemeral=True)
             return
