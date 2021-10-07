@@ -16,7 +16,7 @@ class DiscordHelp(commands.Cog):
         description = ""
         hits = []
         for hit in results["hits"]:
-            title = hit["hierarchy"]["lvl0"]
+            title = self.get_level_str(hit["hierarchy"])
             if title in hits:
                 continue
             hits.append(title)
@@ -26,7 +26,13 @@ class DiscordHelp(commands.Cog):
                 break
         embed = nextcord.Embed(title="Your help has arrived!", description=description, color=nextcord.Color.random())
         await ctx.send(embed=embed)
-        
+
+    def get_level_str(self, levels):
+        last = ""
+        for level in levels.values():
+            if level is not None:
+                last = level
+        return last
 
 
 def setup(bot):
