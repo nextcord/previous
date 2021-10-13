@@ -19,7 +19,7 @@ class GitHubStars(commands.Cog):
                 data = await resp.json()
                 return int(data['stargazers_count'])
 
-    @loop(minutes=15)
+    @loop(minutes=30)
     async def update_stars(self):
         """Loop to check and update stars"""
         channel_name = "🌟 {}".format(await self.get_stars('nextcord/nextcord'))
