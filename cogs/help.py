@@ -35,7 +35,7 @@ class HelpButton(ui.Button["HelpView"]):
         self._help_type = help_type
 
     async def create_help_thread(self, interaction: Interaction) -> None:
-        channel_type = ChannelType.public_thread if interaction.guild.premium_tier != 2 else ChannelType.private_thread
+        channel_type = ChannelType.private_thread if interaction.guild.premium_tier >= 2 else ChannelType.public_thread
         thread = await interaction.channel.create_thread(
             name = f"{self._help_type} help ({interaction.user})",
             type = channel_type
