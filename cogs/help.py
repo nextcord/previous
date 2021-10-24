@@ -145,7 +145,6 @@ class ThreadCloseView(ui.View):
         )
         button.disabled = True
         await interaction.message.edit(view = self)
-        self.stop()
         await interaction.channel.edit(locked = True, archived = True)
         await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
             content = f"Help thread {interaction.channel.name} (created by {self._thread_author.name}) has been closed."
