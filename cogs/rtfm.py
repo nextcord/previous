@@ -483,6 +483,7 @@ class Rtfm(commands.Cog):
         page_types = {
             'python': 'https://docs.python.org/3',
             'master': 'https://nextcord.readthedocs.io/en/latest',
+            'earlyslash': 'https://docs.vincentrps.xyz/en/latest',
         }
 
         if obj is None:
@@ -527,6 +528,10 @@ class Rtfm(commands.Cog):
     @commands.group(name="rtfm", help="python docs", aliases=["rtfd"], invoke_without_command=True)
     async def rtfm_group(self, ctx: commands.Context, *, obj: str = None):
         await self.do_rtfm(ctx, "master", obj)
+    
+    @commands.group(name="rtfmbeta", help="interaction command docs", aliases=["rtfdbeta"], invoke_without_command=True)
+    async def rtfm_group(self, ctx: commands.Context, *, obj: str = None):
+        await self.do_rtfm(ctx, "earlyslash", obj)
 
     @rtfm_group.command(name="python", aliases=["py"])
     async def rtfm_python_cmd(self, ctx: commands.Context, *, obj: str = None):
