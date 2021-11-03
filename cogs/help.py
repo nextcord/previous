@@ -212,8 +212,13 @@ class HelpCog(commands.Cog):
 
         thread_author = await get_thread_author(ctx.channel)
         if thread_author.id == ctx.author.id or ctx.author.get_role(HELPER_ROLE_ID):
-            await ctx.send(
-                "This thread has now been closed. Please create another thread if you wish to ask another question.")
+            embed = Embed(
+                title = f"Thread Closed!",
+                description = f"Your thread has been Closed, If your question was left unanswered we suggest you look at StackOverflows [guide on asking for help](https://stackoverflow.com/help/how-to-ask)",
+                colour = Colour.dark_theme()
+            )
+            embed.set_footer(text = "Thread Closed")
+            await ctx.send(embed=embed)
             await ctx.channel.edit(locked = True, archived = True)
             await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
                 f"Help thread {ctx.channel.name} (created by {thread_author.name}) has been closed.")
