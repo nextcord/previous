@@ -214,7 +214,7 @@ class HelpCog(commands.Cog):
     async def check_active_threads(self):
         await self.bot.wait_until_ready()
         active_threads = [
-            x for x in await self.bot.get_guild(MAIN_GUILD_ID).active_threads if x.parent_id == HELP_CHANNEL_ID
+            x for x in await self.bot.get_guild(MAIN_GUILD_ID).active_threads() if x.parent_id == HELP_CHANNEL_ID
         ]
         for thread in active_threads:
             thread_author = await get_thread_author(thread)
