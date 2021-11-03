@@ -138,11 +138,13 @@ class ThreadCloseView(ui.View):
     async def thread_close_button(self, button: Button, interaction: Interaction):
         if not self._thread_author:
             await self._get_thread_author(interaction.channel)  # type: ignore
-
-        await interaction.channel.send(
-            content = "This thread has now been closed. "
-                      "Please create another thread if you wish to ask another question."
-        )
+        embe = Embed(
+                title = f"Thread Closed!",
+                description = f"Your thread has been Closed, If your question was left unanswered we suggest you look at StackOverflows [guide on asking for help](https://stackoverflow.com/help/how-to-ask)",
+                colour = Colour.dark_theme()
+            )
+        embe.set_footer(text = "Thread Closed")
+        await interaction.channel.send(embed=embe)
         button.disabled = True
         await interaction.message.edit(view = self)
         await interaction.channel.edit(locked = True, archived = True)
