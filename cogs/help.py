@@ -140,7 +140,7 @@ class ThreadCloseView(ui.View):
             await self._get_thread_author(interaction.channel)  # type: ignore
         embe = Embed(
                 title = f"Thread Closed!",
-                description = f"Your thread has been Closed, If your question was left unanswered we suggest you look at StackOverflows [guide on asking for help](https://stackoverflow.com/help/how-to-ask)",
+                description = f"Your thread has been closed, If your question was left unanswered we suggest you look at Python's [guide on asking for help](https://pythondiscord.com/pages/asking-good-questions/)",
                 colour = Colour.dark_theme()
             )
         embe.set_footer(text = "Thread Closed")
@@ -216,7 +216,7 @@ class HelpCog(commands.Cog):
         if thread_author.id == ctx.author.id or ctx.author.get_role(HELPER_ROLE_ID):
             embed = Embed(
                 title = f"Thread Closed!",
-                description = f"Your thread has been Closed, If your question was left unanswered we suggest you look at StackOverflows [guide on asking for help](https://stackoverflow.com/help/how-to-ask)",
+                description = f"Your thread has been closed, If your question was left unanswered we suggest you look at Python's [guide on asking for help](https://pythondiscord.com/pages/asking-good-questions/)",
                 colour = Colour.dark_theme()
             )
             embed.set_footer(text = "Thread Closed")
