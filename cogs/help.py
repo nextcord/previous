@@ -171,7 +171,7 @@ class HelpCog(commands.Cog):
     @commands.Cog.listener()
     async def on_thread_member_remove(self, member: ThreadMember):
         thread = member.thread
-        if thread.parent_id != HELP_CHANNEL_ID:
+        if thread.parent_id != HELP_CHANNEL_ID or thread.archived:
             return
 
         thread_author = await get_thread_author(thread)
