@@ -1,0 +1,21 @@
+**When asking for help, we ask that you please follow these guidelines:**
+
+**1. Please include your error message!** (if relevant)
+If your question is regarding your code not working, error messages assist the helpers in narrowing down the cause of the issue (what line it's on, what module is causing it, etc.). Not including any errors, tracebacks, etc. can slow things down considerably.
+
+**2. If you don't get an error message, please explain further!**
+Saying that your code throws _no_ error messages is still helpful, but the helpers still need more information to  understand the issue you're having. For example, if your code is meant to execute a specific line of code but it does not, or you expect your code to show one thing but it instead shows something different or weird-looking, let us know!
+
+**3. Show your code with mystb.in whevever you can!**
+For most issues, the helpers need to see your code (or at least a small snippet of the relevant code). Please show this where it's relevant to help speed up the support process.
+Additionally, please upload your large chunks of code to https://mystb.in/ instead of uploading a file or sending a code block on Discord. Some helpers use small screens (i.e. mobile devices) that have trouble accurately showing long lines of code.
+
+**4. Try some simple debugging!**
+If you're having trouble finding where the issue lies, one thing you can try is placing `print()` statements at a few points in your code. When you see text printed in the terminal, you'll know whether or not the particular line that `print()` is on is reached or not. Additionally, try `print`ing out some variables and/or their types (using `type(varname)`) to figure out where the issue could be occurring.
+
+**5. Keep issues to a thread!**
+While it's fine to ask multiple questions for the same issue _or_ multiple issues that stem from the first issue (i.e. this is fixed, but now this is happening), we prefer **each thread to be kept to one issue at a time.** This makes it easier for the helpers to keep track of what you need help with.
+
+**6. Please let us know your Python skill level!**
+While this is technically not _required_, it's good for the helpers to know if you're new to Python, as it lets them know how deep they need to explain something, and it may affect the help that they provide.
+Additionally, the helpers _may_ ask you to brush up on your Python basics so that you can understand the help that they provide you. Please don't take this personally, as Nextcord is a complex library and Discord bot projects aren't simple undertakings, so a solid knowledge oif Python's basics is needed in order to understand Nextcord and the help that we provide.

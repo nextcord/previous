@@ -1,4 +1,5 @@
 from typing import Dict, NamedTuple, Optional
+from .utils.split_txtfile import split_txtfile
 
 from nextcord.ext import commands
 from nextcord import (
@@ -203,7 +204,9 @@ class HelpCog(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def help_menu(self, ctx):
-        await ctx.send("Click a button to create a help thread!", view = HelpView())
+        for section in split_txtfile("helpguide.txt"):
+            await ctx.send(section)
+        await ctx.send("**:white_check_mark:  If you've read the guidelines above, click a button to create a help thread!**", view = HelpView())
 
     @commands.command()
     async def close(self, ctx):
