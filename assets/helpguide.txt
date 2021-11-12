@@ -1,4 +1,4 @@
-**When asking for help, we ask that you please follow these guidelines:**
+:scroll:   **When asking for help, we ask that you please follow these guidelines:**
 
 **1. Please include your error message!** (if relevant)
 If your question is regarding your code not working, error messages assist the helpers in narrowing down the cause of the issue (what line it's on, what module is causing it, etc.). Not including any errors, tracebacks, etc. can slow things down considerably.
@@ -18,4 +18,4 @@ While it's fine to ask multiple questions for the same issue _or_ multiple issue
 
 **6. Please let us know your Python skill level!**
 While this is technically not _required_, it's good for the helpers to know if you're new to Python, as it lets them know how deep they need to explain something, and it may affect the help that they provide.
-Additionally, the helpers _may_ ask you to brush up on your Python basics so that you can understand the help that they provide you. Please don't take this personally, as Nextcord is a complex library and Discord bot projects aren't simple undertakings, so a solid knowledge oif Python's basics is needed in order to understand Nextcord and the help that we provide.
+Additionally, the helpers _may_ ask you to brush up on your Python basics so that you can understand the help that they provide you. Please don't take this personally, as Nextcord is a complex library and Discord bot projects aren't simple undertakings, so a solid knowledge of Python's basics is needed in order to understand Nextcord and the help that we provide.
