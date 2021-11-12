@@ -205,7 +205,7 @@ class HelpCog(commands.Cog):
     @commands.is_owner()
     async def help_menu(self, ctx):
         for section in split_txtfile("helpguide.txt"):
-            await ctx.send(section)
+            await ctx.send(embed=Embed(description=section))
         await ctx.send("**:white_check_mark:  If you've read the guidelines above, click a button to create a help thread!**", view = HelpView())
 
     @commands.command()
