@@ -140,10 +140,10 @@ class ThreadCloseView(ui.View):
         if not self._thread_author:
             await self._get_thread_author(interaction.channel)  # type: ignore
 
-        await interaction.channel.send(
-            content = "This thread has now been closed. "
-                      "Please create another thread if you wish to ask another question."
-        )
+        embed_reply = Embed(title="This thread has now been closed",
+                            description="If your question has not been answered or your issue not resolved, we suggest taking a look at [Python's Guide to Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) to get more effective help.",
+                            colour=Colour.dark_theme())
+        await interaction.channel.send(embed=embed_reply)
         button.disabled = True
         await interaction.message.edit(view = self)
         await interaction.channel.edit(locked = True, archived = True)
@@ -215,8 +215,10 @@ class HelpCog(commands.Cog):
 
         thread_author = await get_thread_author(ctx.channel)
         if thread_author.id == ctx.author.id or ctx.author.get_role(HELPER_ROLE_ID):
-            await ctx.send(
-                "This thread has now been closed. Please create another thread if you wish to ask another question.")
+            embed_reply = Embed(title="This thread has now been closed",
+                                description="If your question has not been answered or your issue not resolved, we suggest taking a look at [Python's Guide to Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) to get more effective help.",
+                                colour=Colour.dark_theme())
+            await ctx.send(embed=embed_reply)
             await ctx.channel.edit(locked = True, archived = True)
             await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
                 f"Help thread {ctx.channel.name} (created by {thread_author.name}) has been closed.")
