@@ -141,7 +141,10 @@ class ThreadCloseView(ui.View):
             await self._get_thread_author(interaction.channel)  # type: ignore
 
         embed_reply = Embed(title="This thread has now been closed",
-                            description="If your question has not been answered or your issue not resolved, we suggest taking a look at [Python's Guide to Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) to get more effective help.",
+                            description="If your question has not been answered or your issue not "
+                                        "resolved, we suggest taking a look at [Python's Guide to "
+                                        "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
+                                        "to get more effective help.",
                             colour=Colour.dark_theme())
         await interaction.channel.send(embed=embed_reply)
         button.disabled = True
@@ -206,7 +209,9 @@ class HelpCog(commands.Cog):
     async def help_menu(self, ctx):
         for section in split_txtfile("helpguide.txt"):
             await ctx.send(embed=Embed(description=section))
-        await ctx.send("**:white_check_mark:  If you've read the guidelines above, click a button to create a help thread!**", view = HelpView())
+        await ctx.send("**:white_check_mark:  If you've read the guidelines "
+                       "above, click a button to create a help thread!**",
+                       view = HelpView())
 
     @commands.command()
     async def close(self, ctx):
@@ -216,7 +221,10 @@ class HelpCog(commands.Cog):
         thread_author = await get_thread_author(ctx.channel)
         if thread_author.id == ctx.author.id or ctx.author.get_role(HELPER_ROLE_ID):
             embed_reply = Embed(title="This thread has now been closed",
-                                description="If your question has not been answered or your issue not resolved, we suggest taking a look at [Python's Guide to Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) to get more effective help.",
+                                description="If your question has not been answered or your issue not "
+                                            "resolved, we suggest taking a look at [Python's Guide to "
+                                            "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
+                                            "to get more effective help.",
                                 colour=Colour.dark_theme())
             await ctx.send(embed=embed_reply)
             await ctx.channel.edit(locked = True, archived = True)
