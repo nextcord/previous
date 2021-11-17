@@ -29,6 +29,24 @@ async def get_thread_author(channel: Thread) -> Member:
     user = history_flat[0].mentions[0]
     return user
 
+async def close_help_thread(method: str, thread_channel, thread_author):
+    """Closes a help thread. Is called from either the close button or the
+    =close command.
+    """
+    embed_reply = Embed(title="This thread has now been closed",
+                        description="If your question has not been answered or your issue not "
+                                    "resolved, we suggest taking a look at [Python's Guide to "
+                                    "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
+                                    "to get more effective help.",
+                        colour=Colour.dark_theme())
+
+    await thread_channel.send(embed=embed_reply)  # Send the closing message to the help thread
+    # if method == "button":  # lmao
+    #     await thread_channel.edit(view = self)
+    await thread_channel.edit(locked = True, archived = True)  # Lock thread
+    await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
+        content = f"Help thread {thread_channel.name} (created by {thread_author.name}) has been closed."
+    )
 
 class HelpButton(ui.Button["HelpView"]):
     def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str):
@@ -139,20 +157,8 @@ class ThreadCloseView(ui.View):
     async def thread_close_button(self, button: Button, interaction: Interaction):
         if not self._thread_author:
             await self._get_thread_author(interaction.channel)  # type: ignore
-
-        embed_reply = Embed(title="This thread has now been closed",
-                            description="If your question has not been answered or your issue not "
-                                        "resolved, we suggest taking a look at [Python's Guide to "
-                                        "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
-                                        "to get more effective help.",
-                            colour=Colour.dark_theme())
-        await interaction.channel.send(embed=embed_reply)
+        await close_help_thread("button", interaction.channel, self._thread_author)
         button.disabled = True
-        await interaction.message.edit(view = self)
-        await interaction.channel.edit(locked = True, archived = True)
-        await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-            content = f"Help thread {interaction.channel.name} (created by {self._thread_author.name}) has been closed."
-        )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         if not self._thread_author:
@@ -219,17 +225,7 @@ class HelpCog(commands.Cog):
             return
 
         thread_author = await get_thread_author(ctx.channel)
-        if thread_author.id == ctx.author.id or ctx.author.get_role(HELPER_ROLE_ID):
-            embed_reply = Embed(title="This thread has now been closed",
-                                description="If your question has not been answered or your issue not "
-                                            "resolved, we suggest taking a look at [Python's Guide to "
-                                            "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
-                                            "to get more effective help.",
-                                colour=Colour.dark_theme())
-            await ctx.send(embed=embed_reply)
-            await ctx.channel.edit(locked = True, archived = True)
-            await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-                f"Help thread {ctx.channel.name} (created by {thread_author.name}) has been closed.")
+        await close_help_thread("button", ctx.channel, thread_author)
 
 
 def setup(bot):
