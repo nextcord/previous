@@ -459,8 +459,12 @@ class Rtfm(commands.Cog):
             key = name if dispname == "-" else dispname
             prefix = f"{subdirective}:" if domain == "std" else ""
 
-            if projname == "nextcord":
-                key = key.replace("nextcord.ext.commands.", "").replace("nextcord.", "")
+            key = (
+                key.replace("nextcord.ext.commands.", "")
+                .replace("nextcord.ext.menus.", "")
+                .replace("nextcord.ext.ipc.", "")
+                .replace("nextcord.", "")
+            )
 
             result[f"{prefix}{key}"] = os.path.join(url, location)
 
@@ -481,8 +485,10 @@ class Rtfm(commands.Cog):
 
     async def do_rtfm(self, ctx, key, obj):
         page_types = {
-            'python': 'https://docs.python.org/3',
             'master': 'https://nextcord.readthedocs.io/en/latest',
+            'menus': 'https://nextcord-ext-menus.readthedocs.io/en/latest',
+            'ipc': 'https://nextcord-ext-ipc.readthedocs.io/en/latest',
+            'python': 'https://docs.python.org/3',
         }
 
         if obj is None:
@@ -527,6 +533,14 @@ class Rtfm(commands.Cog):
     @commands.group(name="rtfm", help="python docs", aliases=["rtfd"], invoke_without_command=True)
     async def rtfm_group(self, ctx: commands.Context, *, obj: str = None):
         await self.do_rtfm(ctx, "master", obj)
+
+    @rtfm_group.command(name="menus")
+    async def rtfm_menus_cmd(self, ctx: commands.Context, *, obj: str = None):
+        await self.do_rtfm(ctx, "menus", obj)
+
+    @rtfm_group.command(name="ipc")
+    async def rtfm_ipc_cmd(self, ctx: commands.Context, *, obj: str = None):
+        await self.do_rtfm(ctx, "ipc", obj)
 
     @rtfm_group.command(name="python", aliases=["py"])
     async def rtfm_python_cmd(self, ctx: commands.Context, *, obj: str = None):
