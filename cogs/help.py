@@ -225,7 +225,7 @@ class HelpCog(commands.Cog):
     async def check_active_threads(self):
         await self.bot.wait_until_ready()
         active_threads = [
-            x for x in await self.bot.get_guild(MAIN_GUILD_ID).active_threads if x.parent_id == HELP_CHANNEL_ID
+            x for x in await self.bot.get_guild(MAIN_GUILD_ID).active_threads() if x.parent_id == HELP_CHANNEL_ID
         ]
         thread: Thread
 
@@ -238,7 +238,7 @@ class HelpCog(commands.Cog):
             await thread.edit(locked=True, archived=True)
             await thread.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
                 content=f"Help thread {thread.name} (created by {author.name}) has been closed by {self.bot.user} for inactivity."
-            )
+            )  # type: ignore
 
         for thread in active_threads:
             info = await get_thread_history(thread)
