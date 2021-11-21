@@ -1,5 +1,4 @@
-from typing import Dict, NamedTuple, Optional
-from datetime import timedelta
+from typing import Dict, NamedTuple, Optional, Union, List
 
 from nextcord.ext import commands, tasks
 from nextcord import (
@@ -11,13 +10,16 @@ from nextcord import (
     Guild,
     Interaction,
     Member,
+    User,
     MessageType,
     Thread,
     ThreadMember,
     ui,
 )
-from discord.utils import utcnow as utils_utcnow
+from discord.utils import format_dt, utcnow, snowflake_time
 from nextcord.message import Message
+from datetime import timedelta
+
 
 HELP_CHANNEL_ID: int = 881965127031722004
 HELP_LOGS_CHANNEL_ID: int = 883035085434142781
@@ -26,20 +28,30 @@ MAIN_GUILD_ID: int = 881118111967883295
 CUSTOM_ID_PREFIX: str = "help:"
 
 
-async def get_thread_author(channel: Thread) -> Member:
+async def get_thread_author(channel: Thread) -> Union[Member, User]:
     history = channel.history(oldest_first=True, limit=1)
     history_flat = await history.flatten()
     user = history_flat[0].mentions[0]
     return user
 
 
-async def get_last_message_from_thread(channel: Thread) -> Optional[Message]:
+ThreadInfo = NamedTuple(
+    "ThreadInfo", [("messages", List[Message]), ("last_message", Message), ("author", Union[Member, User])]
+)
+
+# reducing the amount of api calls with this.
+async def get_thread_history(channel: Thread) -> ThreadInfo:
+    history = channel.history(limit=None)
+    history_flat = await history.flatten()
+
     if channel.last_message_id is not None:
-        return await channel.fetch_message(channel.last_message_id)
+        last_message = await channel.fetch_message(channel.last_message_id)
     else:
-        history = channel.history(limit=1)
-        history_flat = await history.flatten()
-        return history_flat[0]
+        last_message = history_flat[0]
+
+    thread_author = history_flat[::-1][0].mentions[0]
+
+    return ThreadInfo(history_flat, last_message, thread_author)
 
 
 class HelpButton(ui.Button["HelpView"]):
@@ -210,30 +222,44 @@ class HelpCog(commands.Cog):
         FakeContext.send = fake_send
         await self.close(FakeContext(thread, thread_author, thread.guild))
 
-    @tasks.loop(minutes=30.0)
+    @tasks.loop(minutes=5.0)
     async def check_active_threads(self):
         await self.bot.wait_until_ready()
         active_threads = [
             x for x in await self.bot.get_guild(MAIN_GUILD_ID).active_threads() if x.parent_id == HELP_CHANNEL_ID
         ]
+        thread: Thread
+
+        # will be improved later
+        async def close_thread(thread: Thread, author: Union[Member, User]):
+            await thread.send(
+                content="This thread has now been closed. Please create another thread if you wish to ask another question."
+            )
+
+            await thread.edit(locked=True, archived=True)
+            await thread.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
+                content=f"Help thread {thread.name} (created by {author.name}) has been closed by {self.bot.user} for inactivity."
+            )  # type: ignore
+
         for thread in active_threads:
-            thread_author = await get_thread_author(thread)
-            last_message = await get_last_message_from_thread(thread)
-            assert last_message is not None
-            if last_message.created_at < utils_utcnow() - timedelta(hours=5):
+            info = await get_thread_history(thread)
+            thread_author = info.author
+            messages = info.messages
+            last_message = info.last_message
+            thread_created_at = snowflake_time(thread.id)
+            messages_sent_in_fifteen_minutes = filter(
+                lambda x: x.created_at > thread_created_at + timedelta(minutes=15), messages
+            )
+            author_messages = filter(lambda x: x.author.id == thread_author.id, list(messages_sent_in_fifteen_minutes))
+            if not list(author_messages):
+                await close_thread(thread, thread_author)
+            elif last_message.created_at > thread_created_at + timedelta(days=1):
                 await thread.send(
-                    content=f"{thread_author.mention}, This thread has been inactive for 5 hours. Please send a message in 24 hours else this thread will be closed."
+                    f"This thread has been idle for more than 1 day. "
+                    f"It will be closed {format_dt(utcnow() + timedelta(days=2), 'R')} if no reply from {thread_author.mention}."
                 )
-            elif last_message.created_at < utils_utcnow() - timedelta(hours=25):
-                await thread.edit(locked=True, archived=True)
-                await thread.send(
-                    content="This thread has now been closed. Please create another thread if you wish to ask another question."
-                )
-                await thread.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-                    content=f"Help thread {thread.name} (created by {thread.author.name}) has been closed because of inactivity."
-                )
-            else:
-                return
+            elif last_message.created_at > last_message.created_at.replace(day=2):
+                await close_thread(thread, thread_author)
 
     @commands.command()
     @commands.is_owner()
