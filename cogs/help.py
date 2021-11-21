@@ -255,7 +255,7 @@ class HelpCog(commands.Cog):
             elif last_message.created_at > thread_created_at + timedelta(days=1):
                 await thread.send(
                     f"This thread has been idle for more than 1 day. "
-                    f"It will be closed {format_dt(utcnow() + timedelta(days=2), 'R')}."
+                    f"It will be closed {format_dt(utcnow() + timedelta(days=2), 'R')} if no reply from {thread_author.mention}."
                 )
             elif last_message.created_at > last_message.created_at.replace(day=2):
                 await close_thread(thread, thread_author)
