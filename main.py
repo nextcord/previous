@@ -32,7 +32,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, nextcord.NotFound) and "Unknown interaction" in str(error):
         return
     else:
-        await ctx.channel.send(f"This command raised an exception: `{type(error)}:{str(error)}`")
+        await ctx.channel.send("This command raised an exception: " + str(type(error) + ":" + str(error)))
 
 
 @bot.listen()
