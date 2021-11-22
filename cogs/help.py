@@ -122,9 +122,14 @@ class ThreadCloseView(ui.View):
 
     @ui.button(label = "Close", style = ButtonStyle.red, custom_id = f"{CUSTOM_ID_PREFIX}thread_close")
     async def thread_close_button(self, button: Button, interaction: Interaction):
+        if interaction.channel.archived:
+            button.disabled = True
+            await interaction.message.edit(view = self)
+            return
+        
         if not self._thread_author:
             await self._get_thread_author(interaction.channel)  # type: ignore
-
+        
         await interaction.channel.send(
             content = "This thread has now been closed. "
                       "Please create another thread if you wish to ask another question."
