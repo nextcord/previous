@@ -127,7 +127,7 @@ class ThreadCloseView(ui.View):
         if not self._thread_author:
             await self._get_thread_author(interaction.channel)  # type: ignore
 
-        if not interaction.channel.archived:
+        if interaction.channel.archived:
             button.disabled = True
             await interaction.message.edit(view=self)
             self.stop()
