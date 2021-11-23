@@ -6,12 +6,11 @@ If your question is regarding your code not working, error messages assist the h
 **2. If you don't get an error message, please explain further!**
 Saying that your code throws _no_ error messages is still helpful, but the helpers still need more information to  understand the issue you're having. For example, if your code is meant to execute a specific line of code but it does not, or you expect your code to show one thing but it instead shows something different or weird-looking, let us know!
 
-**3. Show your code with mystb.in whevever you can!**
-For most issues, the helpers need to see your code (or at least a small snippet of the relevant code). Please show this where it's relevant to help speed up the support process.
-Additionally, please upload your large chunks of code to https://mystb.in/ instead of uploading a file or sending a code block on Discord. Some helpers use small screens (i.e. mobile devices) that have trouble accurately showing long lines of code.
+**3. Show your code with mystb.in!**
+In order to give accurate assistance, the helpers need to see your code (or at least a small snippet of the relevant code). Please upload your code to [mystb.in](https://mystb.in/) to help speed up the support process. We ask that you specifically upload your code to [mystb.in](https://mystb.in/) instead of uploading a file or sending a code block on Discord because some helpers may be using a small screen (i.e. mobile devices) that has trouble accurately showing long lines of code.
 
 **4. Try some simple debugging!**
-If you're having trouble finding where the issue lies, one thing you can try is placing `print()` statements at a few points in your code. When you see text printed in the terminal, you'll know whether or not the particular line that `print()` is on is reached or not. Additionally, try `print`ing out some variables and/or their types (using `type(varname)`) to figure out where the issue could be occurring.
+If you're having trouble finding where the issue lies, one thing you can try is placing `print()` or `breakpoint()` statements at a few points in your code to see if a certain line is reached. Try priting out variables, the type of certain variables, etc. [This relevant guide from Real Python is very helpful](https://realpython.com/lessons/print-and-breakpoint/).
 
 **5. Keep issues to a thread!**
 While it's fine to ask multiple questions for the same issue _or_ multiple issues that stem from the first issue (i.e. this is fixed, but now this is happening), we prefer **each thread to be kept to one issue at a time.** This makes it easier for the helpers to keep track of what you need help with.
