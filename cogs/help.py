@@ -136,6 +136,11 @@ class ThreadCloseView(ui.View):
 
     @ui.button(label = "Close", style = ButtonStyle.red, custom_id = f"{CUSTOM_ID_PREFIX}thread_close")
     async def thread_close_button(self, button: Button, interaction: Interaction):
+        if interaction.channel.archived:
+            button.disabled = True
+            await interaction.message.edit(view = self)
+            return
+
         if not self._thread_author:
             await self._get_thread_author(interaction.channel)  # type: ignore
 
@@ -184,7 +189,7 @@ class HelpCog(commands.Cog):
     @commands.Cog.listener()
     async def on_thread_member_remove(self, member: ThreadMember):
         thread = member.thread
-        if thread.parent_id != HELP_CHANNEL_ID:
+        if thread.parent_id != HELP_CHANNEL_ID or thread.archived:
             return
 
         thread_author = await get_thread_author(thread)
