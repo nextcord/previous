@@ -27,11 +27,13 @@ closing_message = ("If your question has not been answered or your issue not "
                    "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
                    "to get more effective help.")
 
+
 async def get_thread_author(channel: Thread) -> Member:
     history = channel.history(oldest_first = True, limit = 1)
     history_flat = await history.flatten()
     user = history_flat[0].mentions[0]
     return user
+
 
 async def close_help_thread(method: str, thread_channel, thread_author):
     """Closes a help thread. Is called from either the close button or the
@@ -237,10 +239,6 @@ class HelpCog(commands.Cog):
         await ctx.send(f"`{ctx.channel.guild}`")
         thread_author = await get_thread_author(ctx.channel)
         await close_help_thread("button", ctx.channel, thread_author)
-
-    @commands.command()
-    async def icontest(self, ctx):
-        await ctx.send(f"`{ctx.channel.guild.icon.url}`")
 
 
 def setup(bot):
