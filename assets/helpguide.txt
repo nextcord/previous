@@ -10,11 +10,4 @@ Saying that your code throws _no_ error messages is still helpful, but the helpe
 In order to give accurate assistance, the helpers need to see your code (or at least a small snippet of the relevant code). Please upload your code to [mystb.in](https://mystb.in/) to help speed up the support process. We ask that you specifically upload your code to [mystb.in](https://mystb.in/) instead of uploading a file or sending a code block on Discord because some helpers may be using a small screen (i.e. mobile devices) that has trouble accurately showing long lines of code.
 
 **4. Try some simple debugging!**
-If you're having trouble finding where the issue lies, one thing you can try is placing `print()` or `breakpoint()` statements at a few points in your code to see if a certain line is reached. Try priting out variables, the type of certain variables, etc. [This relevant guide from Real Python is very helpful](https://realpython.com/lessons/print-and-breakpoint/).
-
-**5. Keep issues to a thread!**
-While it's fine to ask multiple questions for the same issue _or_ multiple issues that stem from the first issue (i.e. this is fixed, but now this is happening), we prefer **each thread to be kept to one issue at a time.** This makes it easier for the helpers to keep track of what you need help with.
-
-**6. Please let us know your Python skill level!**
-While this is technically not _required_, it's good for the helpers to know if you're new to Python, as it lets them know how deep they need to explain something, and it may affect the help that they provide.
-Additionally, the helpers _may_ ask you to brush up on your Python basics so that you can understand the help that they provide you. Please don't take this personally, as Nextcord is a complex library and Discord bot projects aren't simple undertakings, so a solid knowledge of Python's basics is needed in order to understand Nextcord and the help that we provide.
+If you're having trouble finding where the issue lies, one thing you can try is placing `print()` or `breakpoint()` statements at a few points in your code to see if a certain line is reached. If this doesn't help you fix the issue, it'll assist you in asking more specific questions to the helpers - [this relevant guide from Real Python is very helpful](https://realpython.com/lessons/print-and-breakpoint/).
