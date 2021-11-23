@@ -22,6 +22,11 @@ HELP_LOGS_CHANNEL_ID: int = 883035085434142781
 HELPER_ROLE_ID: int = 882192899519954944
 CUSTOM_ID_PREFIX: str = "help:"
 
+closing_message = ("If your question has not been answered or your issue not "
+                   "resolved, we suggest taking a look at [Python's Guide to "
+                   "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
+                   "to get more effective help.")
+
 
 async def get_thread_author(channel: Thread) -> Member:
     history = channel.history(oldest_first = True, limit = 1)
@@ -29,24 +34,32 @@ async def get_thread_author(channel: Thread) -> Member:
     user = history_flat[0].mentions[0]
     return user
 
+
 async def close_help_thread(method: str, thread_channel, thread_author):
     """Closes a help thread. Is called from either the close button or the
     =close command.
     """
+    _last_msg = await thread_channel.fetch_message(thread_channel.last_message.id)
+    thread_jump_url = _last_msg.jump_url
+
+    dm_embed_thumbnail = thread_channel.guild.icon.url
     embed_reply = Embed(title="This thread has now been closed",
-                        description="If your question has not been answered or your issue not "
-                                    "resolved, we suggest taking a look at [Python's Guide to "
-                                    "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
-                                    "to get more effective help.",
+                        description=closing_message,
                         colour=Colour.dark_theme())
 
     await thread_channel.send(embed=embed_reply)  # Send the closing message to the help thread
-    # if method == "button":  # lmao
-    #     await thread_channel.edit(view = self)
     await thread_channel.edit(locked = True, archived = True)  # Lock thread
     await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
         content = f"Help thread {thread_channel.name} (created by {thread_author.name}) has been closed."
     )
+    # Make some slight changes to the previous thread-closer embed
+    # to send to the user via DM.
+    embed_reply.title = "Your help thread in the Nextcord server has been closed."
+    embed_reply.description += (f"\n\nYou can use [**this link**]({thread_jump_url}) to "
+                                "access the archived thread for future reference")
+    embed_reply.set_thumbnail(url=dm_embed_thumbnail)
+    await thread_author.send(embed=embed_reply)
+    
 
 class HelpButton(ui.Button["HelpView"]):
     def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str):
@@ -223,7 +236,7 @@ class HelpCog(commands.Cog):
     async def close(self, ctx):
         if not isinstance(ctx.channel, Thread) or ctx.channel.parent_id != HELP_CHANNEL_ID:
             return
-
+        await ctx.send(f"`{ctx.channel.guild}`")
         thread_author = await get_thread_author(ctx.channel)
         await close_help_thread("button", ctx.channel, thread_author)
 
