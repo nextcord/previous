@@ -236,7 +236,6 @@ class HelpCog(commands.Cog):
     async def close(self, ctx):
         if not isinstance(ctx.channel, Thread) or ctx.channel.parent_id != HELP_CHANNEL_ID:
             return
-        await ctx.send(f"`{ctx.channel.guild}`")
         thread_author = await get_thread_author(ctx.channel)
         await close_help_thread("button", ctx.channel, thread_author)
 
