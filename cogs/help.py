@@ -41,11 +41,12 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     """Closes a help thread. Is called from either the close button or the
     =close command.
     """
-    if not getattr(thread_channel, "last_message", None) or not thread_channel.last_message_id:
+    if not thread_channel.last_message or not thread_channel.last_message_id:
         _last_msg = ((await thread_channel.history(oldest_first = True, limit = 1)).flatten())[0]
     else:
-        _last_msg = await thread_channel.fetch_message(thread_channel.last_message_id)
-        
+        _msg_id = getattr(thread_channel.last_message, "id", None) or thread_channel.last_message_id
+        _last_msg = thread_channel.get_partial_message(_msg_id)
+
     thread_jump_url = _last_msg.jump_url
 
     dm_embed_thumbnail = thread_channel.guild.icon.url
