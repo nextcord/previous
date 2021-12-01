@@ -8,7 +8,9 @@ from nextcord import (
     ChannelType,
     Colour,
     Embed,
+    Forbidden,
     Guild,
+    HTTPException,
     Interaction,
     Member,
     MessageType,
@@ -39,7 +41,11 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     """Closes a help thread. Is called from either the close button or the
     =close command.
     """
-    _last_msg = await thread_channel.fetch_message(thread_channel.last_message.id)
+    if not getattr(thread_channel, "last_message", None) or not thread_channel.last_message_id:
+        _last_msg = ((await thread_channel.history(oldest_first = True, limit = 1)).flatten())[0]
+    else:
+        _last_msg = await thread_channel.fetch_message(thread_channel.last_message_id)
+        
     thread_jump_url = _last_msg.jump_url
 
     dm_embed_thumbnail = thread_channel.guild.icon.url
@@ -58,8 +64,10 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     embed_reply.description += (f"\n\nYou can use [**this link**]({thread_jump_url}) to "
                                 "access the archived thread for future reference")
     embed_reply.set_thumbnail(url=dm_embed_thumbnail)
-    await thread_author.send(embed=embed_reply)
-    
+    try:
+        await thread_author.send(embed=embed_reply)
+    except (HTTPException, Forbidden):
+        pass
 
 class HelpButton(ui.Button["HelpView"]):
     def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str):
@@ -175,8 +183,10 @@ class ThreadCloseView(ui.View):
 
         if not self._thread_author:
             await self._get_thread_author(interaction.channel)  # type: ignore
-        await close_help_thread("button", interaction.channel, self._thread_author)
+        
+        await close_help_thread("BUTTON", interaction.channel, self._thread_author)
         button.disabled = True
+        await interaction.message.edit(view = self)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         if not self._thread_author:
@@ -219,14 +229,7 @@ class HelpCog(commands.Cog):
         if member.id != thread_author.id:
             return
 
-        FakeContext = NamedTuple("FakeContext", [("channel", Thread), ("author", Member), ("guild", Guild)])
-
-        # _self represents the cog. Thanks Epic#6666
-        async def fake_send(_self, *args, **kwargs):
-            return await thread.send(*args, **kwargs)
-
-        FakeContext.send = fake_send
-        await self.close(FakeContext(thread, thread_author, thread.guild))
+        await close_help_thread("EVENT", thread, thread_author)
 
     @commands.command()
     @commands.is_owner()
@@ -242,7 +245,7 @@ class HelpCog(commands.Cog):
         if not isinstance(ctx.channel, Thread) or ctx.channel.parent_id != HELP_CHANNEL_ID:
             return
         thread_author = await get_thread_author(ctx.channel)
-        await close_help_thread("button", ctx.channel, thread_author)
+        await close_help_thread("COMMAND", ctx.channel, thread_author)
 
 
 def setup(bot):
