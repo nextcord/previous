@@ -1,0 +1,13 @@
+:scroll:   **When asking for help, we ask that you please follow these guidelines:**
+
+**1. Please include your error message!** (if relevant)
+If your question is regarding your code not working, error messages assist the helpers in narrowing down the cause of the issue (what line it's on, what module is causing it, etc.). Not including any errors, tracebacks, etc. can slow things down considerably.
+
+**2. If you don't get an error message, please explain further!**
+Saying that your code throws _no_ error messages is still helpful, but the helpers still need more information to  understand the issue you're having. For example, if your code is meant to execute a specific line of code but it does not, or you expect your code to show one thing but it instead shows something different or weird-looking, let us know!
+
+**3. Show your code with mystb.in!**
+In order to give accurate assistance, the helpers need to see your code (or at least a small snippet of the relevant code). Please upload your code to [mystb.in](https://mystb.in/) to help speed up the support process. We ask that you specifically upload your code to [mystb.in](https://mystb.in/) instead of uploading a file or sending a code block on Discord because some helpers may be using a small screen (i.e. mobile devices) that has trouble accurately showing long lines of code.
+
+**4. Try some simple debugging!**
+If you're having trouble finding where the issue lies, one thing you can try is placing `print()` or `breakpoint()` statements at a few points in your code to see if a certain line is reached. If this doesn't help you fix the issue, it'll assist you in asking more specific questions to the helpers - [this relevant guide from Real Python is very helpful](https://realpython.com/lessons/print-and-breakpoint/).
