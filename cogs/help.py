@@ -263,17 +263,6 @@ class HelpCog(commands.Cog):
         ]
         thread: Thread
 
-        # will be improved later
-        async def close_thread(thread: Thread, author: Union[Member, User]):
-            await thread.send(
-                content="This thread has now been closed. Please create another thread if you wish to ask another question."
-            )
-
-            await thread.edit(locked=True, archived=True)
-            await thread.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-                content=f"Help thread {thread.name} (created by {author.name}) has been closed by {self.bot.user} for inactivity."
-            )  # type: ignore
-
         for thread in active_threads:
             info = await get_thread_history(thread)
             thread_author = info.author
@@ -285,14 +274,14 @@ class HelpCog(commands.Cog):
             )
             author_messages = filter(lambda x: x.author.id == thread_author.id, list(messages_sent_in_fifteen_minutes))
             if not list(author_messages):
-                await close_thread(thread, thread_author)
+                await close_help_thread("TASK", thread, thread_author)
             elif last_message.created_at > thread_created_at + timedelta(days=1):
                 await thread.send(
                     f"This thread has been idle for more than 1 day. "
                     f"It will be closed {utils.format_dt(utils.utcnow() + timedelta(days=2), 'R')} if no reply from {thread_author.mention}."
                 )
-            elif last_message.created_at > last_message.created_at.replace(day=2):
-                await close_thread(thread, thread_author)
+            elif last_message.created_at > last_message.created_at + timedelta(days=2):
+                await close_help_thread("TASK", thread, thread_author)
 
     @commands.command()
     @commands.is_owner()
