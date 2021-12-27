@@ -37,8 +37,6 @@ async def on_command_error(ctx, error):
 
 @bot.listen()
 async def on_message(message):
-    if not message.author.bot:
-        return
     if result := issue_regex.search(message.content):
         issue_id = result.groups()[0]
         await message.channel.send(f"https://github.com/nextcord/nextcord/issues/{issue_id}")
