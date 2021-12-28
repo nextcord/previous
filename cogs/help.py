@@ -22,6 +22,7 @@ from nextcord import (
 HELP_CHANNEL_ID: int = 881965127031722004
 HELP_LOGS_CHANNEL_ID: int = 883035085434142781
 HELPER_ROLE_ID: int = 882192899519954944
+HELP_MOD_ID: int = 896860382226956329
 CUSTOM_ID_PREFIX: str = "help:"
 
 closing_message = ("If your question has not been answered or your issue not "
@@ -180,7 +181,7 @@ class ThreadCloseView(ui.View):
         if not isinstance(interaction.channel, Thread) or interaction.channel.parent_id != HELP_CHANNEL_ID:
             return False
 
-        return interaction.user.id == self._thread_author.id or interaction.user.get_role(HELPER_ROLE_ID)
+        return interaction.user.id == self._thread_author.id or interaction.user.get_role(HELP_MOD_ID)
 
 
 class HelpCog(commands.Cog):
