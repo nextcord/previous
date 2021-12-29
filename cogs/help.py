@@ -1,6 +1,8 @@
 from typing import Dict, Optional
 from asyncio import TimeoutError
 
+from nextcord.utils import T
+
 from .utils.split_txtfile import split_txtfile
 
 from nextcord.ext import commands
@@ -27,11 +29,11 @@ HELPER_ROLE_ID: int = 882192899519954944
 HELP_MOD_ID: int = 896860382226956329
 CUSTOM_ID_PREFIX: str = "help:"
 
+timeout_message: str = "You are currently timed out, please wait until it ends before trying again"
 closing_message = ("If your question has not been answered or your issue not "
                    "resolved, we suggest taking a look at [Python's Guide to "
                    "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
                    "to get more effective help.")
-
 
 async def get_thread_author(channel: Thread) -> Member:
     history = channel.history(oldest_first = True, limit = 1)
@@ -44,6 +46,11 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     """Closes a help thread. Is called from either the close button or the
     =close command.
     """
+
+    # no need to do any of this if the thread is already closed.
+    if thread_channel.archived:
+        return
+
     if not thread_channel.last_message or not thread_channel.last_message_id:
         _last_msg = (await thread_channel.history(limit = 1).flatten())[0]
     else:
@@ -112,14 +119,12 @@ class HelpButton(ui.Button["HelpView"]):
         return thread
 
     async def __launch_wait_for_message(self, thread: Thread, interaction: Interaction) -> None:
-        def yeet(message: Message) -> bool:
+        def is_allowed(message: Message) -> bool:
             return message.author.id == interaction.user.id and message.channel.id == thread.id and not thread.archived  # type: ignore
 
         try:
-            await self.bot.wait_for("message", timeout=900, check=yeet) # 900 = 15 minutes
+            await self.bot.wait_for("message", timeout=900, check=is_allowed) # 900 = 15 minutes
         except TimeoutError:
-            if thread.archived:
-                return
             await close_help_thread("TIMEOUT [launch_wait_for_message]", thread, interaction.user)
             return
         else:
@@ -133,7 +138,7 @@ class HelpButton(ui.Button["HelpView"]):
             for _item in confirm_view.children:
                 _item.disabled = True
 
-        confirm_content = f"Are you really sure you want to make a {self._help_type} Help thread?"
+        confirm_content = f"Are you really sure you want to make a {self._help_type} help thread?"
         await interaction.send(content = confirm_content, ephemeral = True, view = confirm_view)
         await confirm_view.wait()
         if confirm_view.value is False or confirm_view.value is None:
@@ -155,7 +160,7 @@ class HelpView(ui.View):
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         if interaction.user.timeout is not None:
-            await interaction.send("You are currently timed out. Please wait until you are removed from it.", ephemeral=True)
+            await interaction.send(timeout_message, ephemeral=True)
             return False
 
         return await super().interaction_check(interaction)
@@ -208,7 +213,7 @@ class ThreadCloseView(ui.View):
             return False
 
         if interaction.user.timeout is not None:
-            await interaction.send("You are currently timed out. Please wait until you are removed from it.", ephemeral=True)
+            await interaction.send(timeout_message, ephemeral=True)
             return False
 
         elif interaction.user.id != self._thread_author.id and not interaction.user.get_role(HELP_MOD_ID):
