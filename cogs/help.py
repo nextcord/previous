@@ -116,7 +116,7 @@ class HelpButton(ui.Button["HelpView"]):
             return message.author.id == interaction.user.id and message.channel.id == thread.id and not thread.archived  # type: ignore
 
         try:
-            await self.bot.wait_for("message", timeout=5, check=yeet) # 900 = 15 minutes
+            await self.bot.wait_for("message", timeout=900, check=yeet) # 900 = 15 minutes
         except TimeoutError:
             if thread.archived:
                 return
