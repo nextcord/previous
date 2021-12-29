@@ -133,7 +133,7 @@ class HelpButton(ui.Button["HelpView"]):
             for _item in confirm_view.children:
                 _item.disabled = True
 
-        confirm_content = "Are you really sure you want to make a help thread?"
+        confirm_content = f"Are you really sure you want to make a {self._help_type} Help thread?"
         await interaction.send(content = confirm_content, ephemeral = True, view = confirm_view)
         await confirm_view.wait()
         if confirm_view.value is False or confirm_view.value is None:
@@ -211,11 +211,11 @@ class ThreadCloseView(ui.View):
             await interaction.send("You are currently timed out. Please wait until you are removed from it.", ephemeral=True)
             return False
 
-        if interaction.user.id == self._thread_author.id or interaction.user.get_role(HELP_MOD_ID):
-            return True
-        else:
+        elif interaction.user.id != self._thread_author.id and not interaction.user.get_role(HELP_MOD_ID):
             await interaction.send("You are not allowed to close this thread.", ephemeral=True)
             return False
+
+        return True            
 
 
 class HelpCog(commands.Cog):
