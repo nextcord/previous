@@ -1,10 +1,6 @@
 from typing import Dict, Optional
 from asyncio import TimeoutError
 
-from nextcord.utils import T
-
-from .utils.split_txtfile import split_txtfile
-
 from nextcord.ext import commands
 from nextcord import (
     Button,
@@ -22,6 +18,9 @@ from nextcord import (
     Message,
     ui,
 )
+
+from .utils.split_txtfile import split_txtfile
+
 
 HELP_CHANNEL_ID: int = 881965127031722004
 HELP_LOGS_CHANNEL_ID: int = 883035085434142781
