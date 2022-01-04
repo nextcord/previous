@@ -24,7 +24,7 @@ class GitHubStars(commands.Cog):
         """Loop to check and update stars"""
         nextcord_stars = await self.get_stars('nextcord/nextcord')
         nextcord_v3_stars = await self.get_stars('nextcord/nextcord-v3')
-        channel_name = "🌟 {} | V3 🌟 {}".format(nextcord_stars, nextcord_v3_stars)
+        channel_name = "v2 {}🌟| v3 {}🌟".format(nextcord_stars, nextcord_v3_stars)
         # update channel name if it has changed
         if self.__channel.name != channel_name:
             await self.__channel.edit(name=channel_name)
