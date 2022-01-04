@@ -50,7 +50,7 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     """
 
     # no need to do any of this if the thread is already closed.
-    if thread_channel.archived or thread_channel.locked:
+    if (thread_channel.locked or thread_channel.archived):
         return
 
     print(method)
@@ -263,7 +263,10 @@ class HelpCog(commands.Cog):
     async def close_empty_threads(self):
         await self.bot.wait_until_ready()
         active_threads = await self.bot.get_guild(GUILD_ID).active_threads()
-        active_help_threads = [thread for thread in active_threads if not thread.archived and thread.parent_id == HELP_CHANNEL_ID]
+        active_help_threads = [
+            thread for thread in active_threads
+            if thread.parent_id == HELP_CHANNEL_ID and (not thread.locked or not thread.archived)
+        ]
         for thread in active_help_threads:
             thread_created_at = utils.snowflake_time(thread.id)
 
