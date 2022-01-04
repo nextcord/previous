@@ -1,7 +1,8 @@
 from typing import Dict, Optional
 from asyncio import TimeoutError
+from datetime import timedelta
 
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 from nextcord import (
     Button,
     ButtonStyle,
@@ -17,17 +18,19 @@ from nextcord import (
     ThreadMember,
     Message,
     ui,
+    utils,
 )
 
 from .utils.split_txtfile import split_txtfile
-
 
 HELP_CHANNEL_ID: int = 881965127031722004
 HELP_LOGS_CHANNEL_ID: int = 883035085434142781
 HELPER_ROLE_ID: int = 882192899519954944
 HELP_MOD_ID: int = 896860382226956329
+GUILD_ID: int = 881118111967883295
 CUSTOM_ID_PREFIX: str = "help:"
 
+WAIT_FOR_TIMEOUT: int = 1800 # 30 minutes
 timeout_message: str = "You are currently timed out, please wait until it ends before trying again"
 closing_message = ("If your question has not been answered or your issue not "
                    "resolved, we suggest taking a look at [Python's Guide to "
@@ -47,9 +50,10 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     """
 
     # no need to do any of this if the thread is already closed.
-    if thread_channel.archived:
+    if thread_channel.archived or thread_channel.locked:
         return
 
+    print(method)
     if not thread_channel.last_message or not thread_channel.last_message_id:
         _last_msg = (await thread_channel.history(limit = 1).flatten())[0]
     else:
@@ -57,7 +61,6 @@ async def close_help_thread(method: str, thread_channel, thread_author):
 
     thread_jump_url = _last_msg.jump_url
 
-    dm_embed_thumbnail = thread_channel.guild.icon.url
     embed_reply = Embed(title="This thread has now been closed",
                         description=closing_message,
                         colour=Colour.dark_theme())
@@ -71,7 +74,8 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     # to send to the user via DM.
     embed_reply.title = "Your help thread in the Nextcord server has been closed."
     embed_reply.description = f"\n\nYou can use [**this link**]({thread_jump_url}) to access the archived thread for future reference"
-    embed_reply.set_thumbnail(url=dm_embed_thumbnail)
+    if thread_channel.guild.icon:
+        embed_reply.set_thumbnail(url=thread_channel.guild.icon.url)
     try:
         await thread_author.send(embed=embed_reply)
     except (HTTPException, Forbidden):
@@ -122,7 +126,7 @@ class HelpButton(ui.Button["HelpView"]):
             return message.author.id == interaction.user.id and message.channel.id == thread.id and not thread.archived  # type: ignore
 
         try:
-            await self.bot.wait_for("message", timeout=1800, check=is_allowed) # 1800 seconds = 30 minutes
+            await self.bot.wait_for("message", timeout=WAIT_FOR_TIMEOUT, check=is_allowed)
         except TimeoutError:
             await close_help_thread("TIMEOUT [launch_wait_for_message]", thread, interaction.user)
             return
@@ -225,6 +229,7 @@ class ThreadCloseView(ui.View):
 class HelpCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.close_empty_threads.start()
         self.bot.loop.create_task(self.create_views())
 
     async def create_views(self):
@@ -254,6 +259,30 @@ class HelpCog(commands.Cog):
 
         await close_help_thread("EVENT", thread, thread_author)
 
+    @tasks.loop(hours=24)
+    async def close_empty_threads(self):
+        await self.bot.wait_until_ready()
+        active_threads = await self.bot.get_guild(GUILD_ID).active_threads()
+        active_help_threads = [thread for thread in active_threads if not thread.archived and thread.parent_id == HELP_CHANNEL_ID]
+        for thread in active_help_threads:
+            thread_created_at = utils.snowflake_time(thread.id)
+
+            # We don't want to close it before the wait_for.
+            if utils.utcnow() - timedelta(seconds=WAIT_FOR_TIMEOUT) <= thread_created_at:
+                continue
+            
+            all_messages = [
+                message for message in (await thread.history(limit=3, oldest_first=True).flatten())
+                if message.type is MessageType.default
+            ]
+            # can happen, ignore.
+            if not all_messages:
+                continue
+
+            thread_author = all_messages[0].mentions[0]
+            if len(all_messages) == 1 or len(all_messages) >= 2 and all_messages[1].author.id != thread_author.id:
+                await close_help_thread("TASK [close_empty_threads]", thread, thread_author)
+                
     @commands.command()
     @commands.is_owner()
     async def help_menu(self, ctx):
