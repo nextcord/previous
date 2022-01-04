@@ -20,6 +20,7 @@ from nextcord import (
     ui,
     utils,
 )
+from nextcord.ext.commands.core import command
 
 from .utils.split_txtfile import split_txtfile
 
@@ -82,9 +83,8 @@ async def close_help_thread(method: str, thread_channel, thread_author):
         pass
 
 class HelpButton(ui.Button["HelpView"]):
-    def __init__(self, bot: commands.Bot, help_type: str, *, style: ButtonStyle, custom_id: str):
+    def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str):
         super().__init__(label = f"{help_type} help", style = style, custom_id = f"{CUSTOM_ID_PREFIX}{custom_id}")
-        self.bot: commands.Bot = bot
         self._help_type: str = help_type
 
     async def create_help_thread(self, interaction: Interaction) -> Thread:
@@ -122,11 +122,13 @@ class HelpButton(ui.Button["HelpView"]):
         return thread
 
     async def __launch_wait_for_message(self, thread: Thread, interaction: Interaction) -> None:
+        assert self.view is not None
+        
         def is_allowed(message: Message) -> bool:
             return message.author.id == interaction.user.id and message.channel.id == thread.id and not thread.archived  # type: ignore
 
         try:
-            await self.bot.wait_for("message", timeout=WAIT_FOR_TIMEOUT, check=is_allowed)
+            await self.view.bot.wait_for("message", timeout=WAIT_FOR_TIMEOUT, check=is_allowed)
         except TimeoutError:
             await close_help_thread("TIMEOUT [launch_wait_for_message]", thread, interaction.user)
             return
@@ -158,8 +160,10 @@ class HelpButton(ui.Button["HelpView"]):
 class HelpView(ui.View):
     def __init__(self, bot: commands.Bot):
         super().__init__(timeout = None)
-        self.add_item(HelpButton(bot, "Nextcord", style = ButtonStyle.blurple, custom_id = "nextcord"))
-        self.add_item(HelpButton(bot, "Python", style = ButtonStyle.green, custom_id = "python"))
+        self.bot: commands.Bot = bot
+
+        self.add_item(HelpButton("Nextcord", style = ButtonStyle.blurple, custom_id = "nextcord"))
+        self.add_item(HelpButton("Python", style = ButtonStyle.green, custom_id = "python"))
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         if interaction.user.timeout is not None:
