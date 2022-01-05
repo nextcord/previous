@@ -27,8 +27,10 @@ class AutoPaste(Cog):
     async def on_message(self, message: nextcord.Message):
         if message.author.bot:
             return
+        if "pre-ignore" in message.content:
+            return
 
-        regex_result = codeblock_regex.match(message.content)
+        regex_result = codeblock_regex.search(message.content)
 
         if regex_result is None:
             for paste_service in other_paste_services:
