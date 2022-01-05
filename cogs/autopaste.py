@@ -14,9 +14,6 @@ discord_to_workbin = {
 }
 other_paste_services = [
     "pastebin.com",
-    "mystb.in",
-    "hastebin.com",
-    "hst.sh"
 ]
 
 class AutoPaste(Cog):
