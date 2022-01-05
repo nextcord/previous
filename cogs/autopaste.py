@@ -29,6 +29,8 @@ class AutoPaste(Cog):
             return
         if "pre-ignore" in message.content:
             return
+        if message.content.startswith("!"):
+            return
 
         regex_result = codeblock_regex.search(message.content)
 
