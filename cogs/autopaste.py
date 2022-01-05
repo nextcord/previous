@@ -45,8 +45,7 @@ class AutoPaste(Cog):
         res = await r.json()
         paste_id = res["key"]
 
-        await message.channel.send(f"Please avoid codeblocks for code. Posted to -> https://paste.nextcord.dev/?id={paste_id}&language={language}", allowed_mentions=AllowedMentions.none())
-        await message.delete()
+        await message.reply(f"Please avoid codeblocks for code. Posted to -> https://paste.nextcord.dev/?id={paste_id}&language={language}", allowed_mentions=AllowedMentions.none())
 
 def setup(bot):
     bot.add_cog(AutoPaste(bot))
