@@ -22,10 +22,10 @@ other_paste_services = [
 class AutoPaste(Cog):
     def __init__(self, bot) -> None:
         self.bot: Bot = bot
+
     @Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if message.author == 825470953365700708:
-            # Do not delete messages from h3
+        if message.author.bot:
             return
 
         regex_result = codeblock_regex.match(message.content)
@@ -33,8 +33,7 @@ class AutoPaste(Cog):
         if regex_result is None:
             for paste_service in other_paste_services:
                 if paste_service in message.content:
-                    await message.delete()
-                    return await message.channel.send("Please avoid other paste services than https://paste.nextcord.dev.")
+                    return await message.reply("Please avoid other paste services than https://paste.nextcord.dev.")
             return
         language = regex_result.group(1) or "python"
 
@@ -46,7 +45,7 @@ class AutoPaste(Cog):
         res = await r.json()
         paste_id = res["key"]
 
-        await message.channel.send(f"Please avoid codeblocks for code. Posted to -> https://paste.nextcord.dev/?id={paste_id}&language={language}", allowed_mentions=AllowedMentions(everyone=False, roles=[], users=[]))
+        await message.channel.send(f"Please avoid codeblocks for code. Posted to -> https://paste.nextcord.dev/?id={paste_id}&language={language}", allowed_mentions=AllowedMentions.none())
         await message.delete()
 
 def setup(bot):
