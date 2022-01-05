@@ -6,7 +6,7 @@ from nextcord.ext.commands import Cog
 from nextcord.ext.commands.bot import Bot
 from nextcord.mentions import AllowedMentions
 
-codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}")
+codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
 discord_to_workbin = {
     "py": "python",
