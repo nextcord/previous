@@ -9,9 +9,8 @@ from nextcord.mentions import AllowedMentions
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 discord_to_workbin = {
     "py": "python",
-    "js": "javascript",
+    "js": "javascript"
 }
-
 other_paste_services = [
     "pastebin.com",
 ]
@@ -64,7 +63,7 @@ class AutoPaste(Cog):
 
             file_content = str(file_bytes.decode('utf-8'))
             language = content_type_to_lang.get(content_type, "text")
-            
+
             url = await self.do_upload(file_content, language)
             await message.reply(f"Please avoid files for code. Posted to {url}", allowed_mentions=AllowedMentions.none())
             return 
