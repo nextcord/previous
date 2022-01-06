@@ -43,6 +43,8 @@ class AutoPaste(Cog):
     async def on_message(self, message: Message):
         if message.author.bot:
             return
+        if message.reference:
+            return
         if "pre-ignore" in message.content:
             return
         if message.content.startswith("!"):
