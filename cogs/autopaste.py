@@ -1,7 +1,8 @@
 from typing import List
 import re
 
-from nextcord import Message
+from nextcord import Message, MessageType
+from nextcord.abc import Messageable
 from nextcord.ext.commands import Cog
 from nextcord.ext.commands.bot import Bot
 from nextcord.mentions import AllowedMentions
@@ -43,7 +44,7 @@ class AutoPaste(Cog):
     async def on_message(self, message: Message):
         if message.author.bot:
             return
-        if message.reference:
+        if message.type is MessageType.reply:
             return
         if "pre-ignore" in message.content:
             return
