@@ -14,6 +14,7 @@ discord_to_workbin = {
 }
 other_paste_services = [
     "pastebin.com",
+    "sourceb.in"
 ]
 supported_content_types: List[str] = [
     "text/plain",
