@@ -47,7 +47,7 @@ class DeleteMessage(View):
         self.message_author = message_author
         super().__init__(timeout=300)  # 300 seconds == 5 minutes
 
-    @button(emoji="🚮", style=ButtonStyle.blurple, custom_id="delete_autopaste")
+    @button(emoji="❌", style=ButtonStyle.secondary, custom_id="delete_autopaste")
     async def delete_autopaste(self, _, interaction: Interaction) -> None:
         try:
             await interaction.message.delete()  # type: ignore
@@ -72,13 +72,7 @@ class DeleteMessage(View):
             interaction.channel.permissions_for(interaction.user).manage_messages:  # type: ignore
             return True
 
-        elif isinstance(interaction.channel, Thread) and \
-            interaction.channel.parent_id == HELP_CHANNEL_ID and \
-                interaction.user.get_role(HELP_MOD_ID):
-            return True
-
-        else:
-            return False
+        return False
 
 
 class AutoPaste(Cog):
