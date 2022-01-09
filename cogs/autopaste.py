@@ -1,10 +1,19 @@
-from typing import List
+from typing import Callable, List, Optional
 import re
 
 from nextcord import Message
+from nextcord.enums import ButtonStyle
+from nextcord.errors import HTTPException, NotFound
 from nextcord.ext.commands import Cog
 from nextcord.ext.commands.bot import Bot
+from nextcord.interactions import Interaction
+from nextcord.member import Member
 from nextcord.mentions import AllowedMentions
+from nextcord.threads import Thread
+from nextcord.ui import button, View
+
+from .help import HELP_CHANNEL_ID, HELP_MOD_ID
+
 
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
@@ -31,6 +40,47 @@ content_type_to_lang = {
     "application/javascript": "javascript"
 }
 
+
+class DeleteMessage(View):
+    def __init__(self, message_author: Member):
+        self.message: Optional[Message] = None
+        self.message_author = message_author
+        super().__init__(timeout=300)  # 300 seconds == 5 minutes
+
+    @button(emoji="🚮", style=ButtonStyle.blurple, custom_id="delete_autopaste")
+    async def delete_autopaste(self, _, interaction: Interaction) -> None:
+        try:
+            await interaction.message.delete()  # type: ignore
+        except (HTTPException, NotFound):
+            pass
+
+        await self.on_timeout()
+
+    async def on_timeout(self) -> None:
+        self.stop()
+        try:
+            await self.message.edit(view=None)  # type: ignore
+        except (AttributeError, HTTPException, NotFound):
+            pass
+
+    async def interaction_check(self, interaction: Interaction) -> bool:
+        if not interaction.user or not interaction.channel or not isinstance(interaction.user, Member):
+            await self.on_timeout()
+            return False
+
+        if interaction.user.id == self.message_author.id or \
+            interaction.channel.permissions_for(interaction.user).manage_messages:  # type: ignore
+            return True
+
+        elif isinstance(interaction.channel, Thread) and \
+            interaction.channel.parent_id == HELP_CHANNEL_ID and \
+                interaction.user.get_role(HELP_MOD_ID):
+            return True
+
+        else:
+            return False
+
+
 class AutoPaste(Cog):
     def __init__(self, bot) -> None:
         self.bot: Bot = bot
@@ -49,6 +99,9 @@ class AutoPaste(Cog):
         if message.content.startswith("!"):
             return
 
+        delete_view: DeleteMessage = DeleteMessage(message.author)  # type: ignore
+
+        # Files
         if message.attachments:
             first_attachment = message.attachments[0]
             if not first_attachment.content_type:
@@ -67,14 +120,17 @@ class AutoPaste(Cog):
             language = content_type_to_lang.get(content_type, "text")
 
             url = await self.do_upload(file_content, language)
-            await message.reply(f"Please avoid files for code. Posted to {url}", allowed_mentions=AllowedMentions.none())
-            return 
+            delete_view.message=await message.reply(f"Please avoid files for code. Posted to {url}", allowed_mentions=AllowedMentions.none(), view=delete_view)
+            return
 
+        # Codeblocks
         regex_result = codeblock_regex.search(message.content)
         if regex_result is None:
+            # Check for bad paste services
             for paste_service in other_paste_services:
                 if paste_service in message.content:
-                    return await message.reply("Please avoid other paste services than https://paste.nextcord.dev.")
+                    delete_view.message=await message.reply("Please avoid other paste services than https://paste.nextcord.dev.", view=delete_view)
+                    return
             return
 
         language = regex_result.group(1) or "python"
@@ -82,7 +138,7 @@ class AutoPaste(Cog):
         code = regex_result.group(2)
 
         url = await self.do_upload(code, language)
-        await message.reply(f"Please avoid codeblocks for code. Posted to -> {url}", allowed_mentions=AllowedMentions.none())
+        delete_view.message=await message.reply(f"Please avoid codeblocks for code. Posted to -> {url}", allowed_mentions=AllowedMentions.none(), view=delete_view)
 
 def setup(bot):
     bot.add_cog(AutoPaste(bot))
