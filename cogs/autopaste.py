@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import List, Optional
 import re
 
 from nextcord import Message
@@ -9,10 +9,7 @@ from nextcord.ext.commands.bot import Bot
 from nextcord.interactions import Interaction
 from nextcord.member import Member
 from nextcord.mentions import AllowedMentions
-from nextcord.threads import Thread
 from nextcord.ui import button, View
-
-from .help import HELP_CHANNEL_ID, HELP_MOD_ID
 
 
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
