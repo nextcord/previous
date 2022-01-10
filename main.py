@@ -18,7 +18,6 @@ discord_regex = compile(r"#!(\d+)")
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, errors.CommandNotFound):
-        await ctx.channel.send("This command does not exist.")
         return
     elif isinstance(error, errors.TooManyArguments):
         await ctx.channel.send("You are giving too many arguments!")
