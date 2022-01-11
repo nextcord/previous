@@ -54,7 +54,6 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     if (thread_channel.locked or thread_channel.archived):
         return
 
-    print(method)
     if not thread_channel.last_message or not thread_channel.last_message_id:
         _last_msg = (await thread_channel.history(limit = 1).flatten())[0]
     else:
@@ -111,7 +110,7 @@ class HelpButton(ui.Button["HelpView"]):
             description = f"What do you need help with?",
             colour = type_to_colour.get(self._help_type, Colour.blurple())
         )
-        em.set_footer(text = "You and the help moderators can close this thread with the button")
+        em.set_footer(text = "You and the helper can close this thread with the button")
 
         msg = await thread.send(
             content = interaction.user.mention,
@@ -266,11 +265,14 @@ class HelpCog(commands.Cog):
     @tasks.loop(hours=24)
     async def close_empty_threads(self):
         await self.bot.wait_until_ready()
-        active_threads = await self.bot.get_guild(GUILD_ID).active_threads()
+
+        guild = self.bot.get_guild(GUILD_ID)
         active_help_threads = [
-            thread for thread in active_threads
-            if thread.parent_id == HELP_CHANNEL_ID and (not thread.locked or not thread.archived)
+            thread for thread in await guild.active_threads()
+            if thread.parent_id == HELP_CHANNEL_ID and (not thread.locked and not thread.archived)
         ]
+
+        thread: Thread
         for thread in active_help_threads:
             thread_created_at = utils.snowflake_time(thread.id)
 
@@ -287,9 +289,15 @@ class HelpCog(commands.Cog):
                 continue
 
             thread_author = all_messages[0].mentions[0]
-            if len(all_messages) == 1 or len(all_messages) >= 2 and all_messages[1].author.id != thread_author.id:
+            if len(all_messages) >= 2:
+                members = [x.id for x in await thread.fetch_members()]
+                if all_messages[1].author == thread_author and members == [thread_author.id, guild.me.id]:
+                    await thread.send(f"<@&{HELPER_ROLE_ID}>", delete_after=5)
+                    continue
+            else:
                 await close_help_thread("TASK [close_empty_threads]", thread, thread_author)
-                
+                continue
+
     @commands.command()
     @commands.is_owner()
     async def help_menu(self, ctx):
