@@ -20,7 +20,6 @@ from nextcord import (
     ui,
     utils,
 )
-from nextcord.ext.commands.core import command
 
 from .utils.split_txtfile import split_txtfile
 
@@ -316,6 +315,16 @@ class HelpCog(commands.Cog):
             
         thread_author = await get_thread_author(ctx.channel)
         await close_help_thread("COMMAND", ctx.channel, thread_author)
+
+    @commands.command()
+    @commands.has_role(HELP_MOD_ID)
+    async def topic(self, ctx, *, topic):
+        if not ctx.channel.type == ChannelType.private_thread:
+            return await ctx.send("This command can only be used in help threads!")
+        if ctx.message.channel.parent.id != HELP_CHANNEL_ID:
+            return await ctx.send("This command can only be used in help threads!")
+        author = await get_thread_author(ctx.channel)
+        await ctx.channel.edit(name=f"{topic} ({author})")
 
 
 def setup(bot):

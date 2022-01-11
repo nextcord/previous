@@ -18,7 +18,6 @@ discord_regex = compile(r"#!(\d+)")
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, errors.CommandNotFound):
-        await ctx.channel.send("This command does not exist.")
         return
     elif isinstance(error, errors.TooManyArguments):
         await ctx.channel.send("You are giving too many arguments!")
@@ -53,9 +52,8 @@ async def todo(ctx):
 for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
         bot.load_extension(f"cogs.{filename[:-3]}")
-    else:
-        if os.path.isfile(filename):
-            print(f"Unable to load {filename[:-3]}")
+    elif os.path.isfile(filename):
+        print(f"Unable to load {filename[:-3]}")
 
 
 async def startup():
