@@ -48,17 +48,17 @@ async def on_message(message):
 async def todo(ctx):
     await ctx.send("https://github.com/nextcord/nextcord/projects/1 and going through all the issues")
 
-
+"""
 for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
         bot.load_extension(f"cogs.{filename[:-3]}")
     elif os.path.isfile(filename):
         print(f"Unable to load {filename[:-3]}")
-
+"""
 
 async def startup():
     bot.session = aiohttp.ClientSession()
 
-
+bot.load_extension("cogs.help")
 bot.loop.create_task(startup())
-bot.run(env["TOKEN"])
+bot.run("ODkwNjczNzkwNTg4MTcwMjQx.YUzOmw.qD-t7EDQ0o4hD2d0V8X7A3vzPxk")
