@@ -109,7 +109,7 @@ class HelpButton(ui.Button["HelpView"]):
             description = f"What do you need help with?",
             colour = type_to_colour.get(self._help_type, Colour.blurple())
         )
-        em.set_footer(text = "You and the helper can close this thread with the button")
+        em.set_footer(text = "You and the helpers can close this thread with the button")
 
         msg = await thread.send(
             content = interaction.user.mention,
