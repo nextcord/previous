@@ -530,7 +530,7 @@ class Rtfm(commands.Cog):
             refer = ref.resolved.to_reference()
         await ctx.send(embed=e, reference=refer)
 
-    @commands.group(name="rtfm", help="python docs", aliases=["rtfd"], invoke_without_command=True)
+    @commands.group(name="docs", help="python docs", aliases=["rtfd", "rtfm"], invoke_without_command=True)
     async def rtfm_group(self, ctx: commands.Context, *, obj: str = None):
         await self.do_rtfm(ctx, "master", obj)
 
