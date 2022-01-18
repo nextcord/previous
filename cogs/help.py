@@ -1,6 +1,7 @@
 from typing import Dict, Optional
 from asyncio import TimeoutError
 from datetime import timedelta
+from re import match
 
 from nextcord.ext import commands, tasks
 from nextcord import (
@@ -29,8 +30,9 @@ HELPER_ROLE_ID: int = 882192899519954944
 HELP_MOD_ID: int = 896860382226956329
 GUILD_ID: int = 881118111967883295
 CUSTOM_ID_PREFIX: str = "help:"
-
+NAME_TOPIC_REGEX: str = r"(^.*?) \((.*?[0-9]{4})\)$"
 WAIT_FOR_TIMEOUT: int = 1800 # 30 minutes
+
 timeout_message: str = "You are currently timed out, please wait until it ends before trying again"
 closing_message = ("If your question has not been answered or your issue not "
                    "resolved, we suggest taking a look at [Python's Guide to "
@@ -318,14 +320,28 @@ class HelpCog(commands.Cog):
 
     @commands.command()
     @commands.has_role(HELP_MOD_ID)
-    async def topic(self, ctx, *, topic):
-        if not ctx.channel.type == ChannelType.private_thread:
+    async def topic(self, ctx, *, topic: str):
+        if not (isinstance(ctx.channel, Thread) and ctx.channel.parent.id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
-        if ctx.message.channel.parent.id != HELP_CHANNEL_ID:
-            return await ctx.send("This command can only be used in help threads!")
-        author = await get_thread_author(ctx.channel)
+
+        author = match(NAME_TOPIC_REGEX, ctx.channel.name).group(2)  # type: ignore
         await ctx.channel.edit(name=f"{topic} ({author})")
 
+    @commands.command()
+    @commands.has_role(HELP_MOD_ID)
+    async def transfer(self, ctx, *, new_author: Member):
+        if not (isinstance(ctx.channel, Thread) and ctx.channel.parent_id == HELP_CHANNEL_ID):  # type: ignore
+            return await ctx.send("This command can only be used in help threads!")
+
+        topic, author = match(NAME_TOPIC_REGEX, ctx.channel.name).groups()  # type: ignore
+
+        first_thread_message = (await ctx.channel.history(limit=1, oldest_first=True).flatten())[0]
+        await first_thread_message.edit(content=new_author.mention)
+        await ctx.channel.edit(name=f"{topic} ({new_author})")
+        await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
+            content=f"Help thread {ctx.channel.mention} (created by {author}) " \
+                    f"has been transferred to {new_author.mention} by {ctx.author.mention}.",
+        )
 
 def setup(bot):
     bot.add_cog(HelpCog(bot))
