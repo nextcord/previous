@@ -333,13 +333,14 @@ class HelpCog(commands.Cog):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent_id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
 
-        topic, author = match(NAME_TOPIC_REGEX, ctx.channel.name).groups()  # type: ignore
-
+        topic = match(NAME_TOPIC_REGEX, ctx.channel.name).group(1)  # type: ignore
         first_thread_message = (await ctx.channel.history(limit=1, oldest_first=True).flatten())[0]
-        await first_thread_message.edit(content=new_author.mention)
+        old_author = first_thread_message.mentions[0]
+
         await ctx.channel.edit(name=f"{topic} ({new_author})")
+        await first_thread_message.edit(content=new_author.mention)
         await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
-            content=f"Help thread {ctx.channel.mention} (created by {author}) " \
+            content=f"Help thread {ctx.channel.mention} (created by {old_author.mention}) " \
                     f"has been transferred to {new_author.mention} by {ctx.author.mention}.",
         )
 
