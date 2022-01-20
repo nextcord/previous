@@ -420,7 +420,7 @@ class SphinxObjectFileReader:
                 pos = buf.find(b'\n')
 
 
-class Rtfm(commands.Cog):
+class Docs(commands.Cog):
     # full credit to https://github.com/Rapptz/RoboDanny
     def __init__(self, bot):
         self.bot = bot
@@ -470,20 +470,20 @@ class Rtfm(commands.Cog):
 
         return result
 
-    async def build_rtfm_lookup_table(self, page_types):
+    async def build_docs_lookup_table(self, page_types):
         cache = {}
         for key, page in page_types.items():
             sub = cache[key] = {}
             async with self.bot.session.get(page + '/objects.inv') as resp:
                 if resp.status != 200:
-                    raise RuntimeError('Cannot build rtfm lookup table, try again later.')
+                    raise RuntimeError('Cannot build docs lookup table, try again later.')
 
                 stream = SphinxObjectFileReader(await resp.read())
                 cache[key] = self.parse_object_inv(stream, page)
 
-        self._rtfm_cache = cache
+        self._docs_cache = cache
 
-    async def do_rtfm(self, ctx, key, obj):
+    async def do_docs(self, ctx, key, obj):
         page_types = {
             'master': 'https://nextcord.readthedocs.io/en/latest',
             'menus': 'https://nextcord-ext-menus.readthedocs.io/en/latest',
@@ -495,9 +495,9 @@ class Rtfm(commands.Cog):
             await ctx.send(page_types[key])
             return
 
-        if not hasattr(self, '_rtfm_cache'):
+        if not hasattr(self, '_docs_cache'):
             await ctx.trigger_typing()
-            await self.build_rtfm_lookup_table(page_types)
+            await self.build_docs_lookup_table(page_types)
 
         obj = re.sub(r'^(?:discord\.(?:ext\.)?)?(?:commands\.)?(.+)', r'\1', obj)
         obj = re.sub(r'^(?:nextcord\.(?:ext\.)?)?(?:commands\.)?(.+)', r'\1', obj)
@@ -512,7 +512,7 @@ class Rtfm(commands.Cog):
                     obj = f'abc.Messageable.{name}'
                     break
 
-        cache = list(self._rtfm_cache[key].items())
+        cache = list(self._docs_cache[key].items())
 
         def transform(tup):
             return tup[0]
@@ -530,29 +530,29 @@ class Rtfm(commands.Cog):
             refer = ref.resolved.to_reference()
         await ctx.send(embed=e, reference=refer)
 
-    @commands.group(name="docs", help="python docs", aliases=["rtfd", "rtfm"], invoke_without_command=True)
-    async def rtfm_group(self, ctx: commands.Context, *, obj: str = None):
-        await self.do_rtfm(ctx, "master", obj)
+    @commands.group(name="docs", help="python docs", invoke_without_command=True)
+    async def docs_group(self, ctx: commands.Context, *, obj: str = None):
+        await self.do_docs(ctx, "master", obj)
 
-    @rtfm_group.command(name="menus")
-    async def rtfm_menus_cmd(self, ctx: commands.Context, *, obj: str = None):
-        await self.do_rtfm(ctx, "menus", obj)
+    @docs_group.command(name="menus")
+    async def docs_menu_cmd(self, ctx: commands.Context, *, obj: str = None):
+        await self.do_docs(ctx, "menus", obj)
 
-    @rtfm_group.command(name="ipc")
-    async def rtfm_ipc_cmd(self, ctx: commands.Context, *, obj: str = None):
-        await self.do_rtfm(ctx, "ipc", obj)
+    @docs_group.command(name="ipc")
+    async def docs_ipc_cmd(self, ctx: commands.Context, *, obj: str = None):
+        await self.do_docs(ctx, "ipc", obj)
 
-    @rtfm_group.command(name="python", aliases=["py"])
-    async def rtfm_python_cmd(self, ctx: commands.Context, *, obj: str = None):
-        await self.do_rtfm(ctx, "python", obj)
+    @docs_group.command(name="python", aliases=["py"])
+    async def docs_python_cmd(self, ctx: commands.Context, *, obj: str = None):
+        await self.do_docs(ctx, "python", obj)
 
-    @commands.command(help="delete cache of rtfm (owner only)", aliases=["purge-rtfm", "delrtfm"])
+    @commands.command(help="delete cache of docs (owner only)", aliases=["purge-docs", "deldocs"])
     @commands.is_owner()
-    async def rtfmcache(self, ctx: commands.Context):
-        del self._rtfm_cache
-        embed = discord.Embed(title="Purged rtfm cache.", color=discord.Color.blurple())
+    async def docscache(self, ctx: commands.Context):
+        del self._docs_cache
+        embed = discord.Embed(title="Purged docs cache.", color=discord.Color.blurple())
         await ctx.send(embed=embed)
 
 
 def setup(bot):
-    bot.add_cog(Rtfm(bot))
+    bot.add_cog(Docs(bot))
