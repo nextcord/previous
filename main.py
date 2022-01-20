@@ -20,18 +20,18 @@ async def on_command_error(ctx, error):
     if isinstance(error, errors.CommandNotFound):
         return
     elif isinstance(error, errors.TooManyArguments):
-        await ctx.channel.send("You are giving too many arguments!")
+        await ctx.send("You are giving too many arguments!")
         return
     elif isinstance(error, errors.BadArgument):
-        await ctx.channel.send("The library ran into an error attempting to parse your argument.")
+        await ctx.send("The library ran into an error attempting to parse your argument.")
         return
     elif isinstance(error, errors.MissingRequiredArgument):
-        await ctx.channel.send("You're missing a required argument.")
+        await ctx.send("You're missing a required argument.")
     # kinda annoying and useless error.
     elif isinstance(error, nextcord.NotFound) and "Unknown interaction" in str(error):
         return
     else:
-        await ctx.channel.send(f"This command raised an exception: `{type(error)}:{str(error)}`")
+        await ctx.send(f"This command raised an exception: `{type(error)}:{str(error)}`")
 
 
 @bot.listen()
