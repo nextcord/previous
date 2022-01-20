@@ -107,11 +107,16 @@ class HelpButton(ui.Button["HelpView"]):
         }
 
         em = Embed(
-            title = f"{self._help_type} Help needed!",
-            description = f"What do you need help with?",
-            colour = type_to_colour.get(self._help_type, Colour.blurple())
+            title = f"{self._help_type} Help thread",
+            colour = type_to_colour.get(self._help_type, Colour.blurple()),
+            description = (
+                "Please explain your issue in detail, helpers will respond as soon as possible."
+                "\n\n**Please include the following in your initial message:**"
+                "\n- Relevant code\n- Error (if present)\n- Expected behavior"
+                f"\n\nRefer for more to our help guildlines in <#{HELP_CHANNEL_ID}>"
+            )
         )
-        em.set_footer(text = "You and the helpers can close this thread with the button")
+        em.set_footer(text = "You can close this thread with the button or =close command.")
 
         msg = await thread.send(
             content = interaction.user.mention,
