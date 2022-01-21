@@ -16,4 +16,4 @@ jobs:
       with:
         github-token: ${{ secrets.GH_REGISTRY_TOKEN }} # Provide GITHUB_TOKEN to login into the GitHub Packages
         image-name: previous # Provide Docker image name
-        image-tag: $GITHUB_SHA # Provide Docker image tag
+        image-tag: ${{ GITHUB_SHA }} # Provide Docker image tag
