@@ -20,6 +20,7 @@ from nextcord import (
     Message,
     ui,
     utils,
+    AllowedMentions
 )
 
 from .utils.split_txtfile import split_txtfile
@@ -96,7 +97,8 @@ class HelpButton(ui.Button["HelpView"]):
         )
 
         await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-            content = f"Help thread for {self._help_type} created by {interaction.user.mention}: {thread.mention}!"
+            content = f"Help thread for {self._help_type} created by {interaction.user.mention}: {thread.mention}!",
+            allowed_mentions = AllowedMentions(users=False)
         )
         close_button_view = ThreadCloseView()
         close_button_view._thread_author = interaction.user
