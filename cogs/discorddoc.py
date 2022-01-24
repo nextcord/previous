@@ -10,7 +10,7 @@ class DiscordHelp(commands.Cog):
         api_key = "f37d91bd900bbb124c8210cca9efcc01"
         self.search_client = SearchClient.create(app_id, api_key)
         self.index = self.search_client.init_index('discord')
-    @commands.command()
+    @commands.command(help="discord api docs")
     async def ddoc(self, ctx, *, search_term):
         results = await self.index.search_async(search_term)
         description = ""
