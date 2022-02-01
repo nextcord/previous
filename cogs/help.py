@@ -98,8 +98,6 @@ class HelpButton(ui.Button["HelpView"]):
             content = f"Help thread for {self._help_type} created by {interaction.user.mention}: {thread.mention}!",
             allowed_mentions = AllowedMentions(users=False)
         )
-        close_button_view = ThreadCloseView()
-        close_button_view._thread_author = interaction.user
 
         type_to_colour: Dict[str, Colour] = {
             "Nextcord": Colour.blurple(),
@@ -118,11 +116,15 @@ class HelpButton(ui.Button["HelpView"]):
         )
         em.set_footer(text = "You can close this thread with the button or =close command.")
 
+        close_button_view = ThreadCloseView()
+
         msg = await thread.send(
             content = interaction.user.mention,
             embed = em,
-            view = ThreadCloseView()
+            view = close_button_view
         )
+        # it's a persistent view, we only need the button.
+        close_button_view.stop()
         await msg.pin(reason = "First message in help thread with the close button.")
         return thread
 
@@ -199,26 +201,26 @@ class ThreadCloseView(ui.View):
         super().__init__(timeout = None)
         self._thread_author: Optional[Member] = None
 
-    async def _get_thread_author(self, channel: Thread) -> None:
-        self._thread_author = await get_thread_author(channel)
-
-    @ui.button(label = "Close", style = ButtonStyle.red, custom_id = f"{CUSTOM_ID_PREFIX}thread_close")
-    async def thread_close_button(self, button: Button, interaction: Interaction):
-        if interaction.channel.archived:
-            button.disabled = True
-            await interaction.response.edit_message(view = self)
+    async def _set_author(self, channel: Thread) -> None:
+        if self._thread_author is not None:
             return
 
-        if not self._thread_author:
-            await self._get_thread_author(interaction.channel)  # type: ignore
+        self._thread_author = await get_thread_author(channel)
+
+    @ui.button(label = "Close", style = ButtonStyle.red, custom_id = f"{CUSTOM_ID_PREFIX}thread_close")  # type: ignore
+    async def thread_close_button(self, button: Button, interaction: Interaction):
+        if (interaction.channel.archived or interaction.channel.locked):  # type: ignore
+            button.disabled = True
+            return
+
+        await self._set_author(interaction.channel)  # type: ignore
         
         button.disabled = True
         await interaction.response.edit_message(view = self)
         await close_help_thread("BUTTON", interaction.channel, self._thread_author)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
-        if not self._thread_author:
-            await self._get_thread_author(interaction.channel)  # type: ignore
+        await self._set_author(interaction.channel)  # type: ignore
 
         # because we aren't assigning the persistent view to a message_id.
         if not isinstance(interaction.channel, Thread) or interaction.channel.parent_id != HELP_CHANNEL_ID:
@@ -291,7 +293,7 @@ class HelpCog(commands.Cog):
                 if message.type is MessageType.default
             ]
             # can happen, ignore.
-            if not all_messages:
+            if not all_messages or not (all_messages and all_messages[0].mentions):
                 continue
 
             thread_author = all_messages[0].mentions[0]
