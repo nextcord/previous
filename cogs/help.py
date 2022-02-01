@@ -323,16 +323,28 @@ class HelpCog(commands.Cog):
         thread_author = await get_thread_author(ctx.channel)
         await close_help_thread("COMMAND", ctx.channel, thread_author)
 
-    @commands.command()
+    @commands.command(aliases=["status"])
     @commands.has_role(HELP_MOD_ID)
-    async def topic(self, ctx, *, topic: str):
+    async def topic(self, ctx, status: str, *, topic=None):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent.id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
+        
+        if status.lower() not in ("active", "stalled", "help-needed", "helpneeded"):
+            return await ctx.send("Status can be set only to `active`, `stalled` or `help-needed`")
+        status = status.title()
 
         author = match(NAME_TOPIC_REGEX, ctx.channel.name).group(2)  # type: ignore
-        await ctx.channel.edit(name=f"{topic} ({author})")
+        if not topic:
+            topic = match(NAME_TOPIC_REGEX, ctx.channel.name).group(1)  # type: ignore
 
-    @commands.command(aliases=["hijack"])
+        new_name = f"[{status}] {topic} ({author})"
+
+        if len(new_name) > 126:
+            return await ctx.send("New name spills over 126 characters, please shorten the topic.")
+
+        await ctx.channel.edit(name=new_name)
+
+    @commands.command()
     @commands.has_role(HELP_MOD_ID)
     async def transfer(self, ctx, *, new_author: Member):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent_id == HELP_CHANNEL_ID):  # type: ignore
