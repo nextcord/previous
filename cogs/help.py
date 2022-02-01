@@ -332,7 +332,7 @@ class HelpCog(commands.Cog):
         author = match(NAME_TOPIC_REGEX, ctx.channel.name).group(2)  # type: ignore
         await ctx.channel.edit(name=f"{topic} ({author})")
 
-    @commands.command()
+    @commands.command(aliases=["hijack"])
     @commands.has_role(HELP_MOD_ID)
     async def transfer(self, ctx, *, new_author: Member):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent_id == HELP_CHANNEL_ID):  # type: ignore
