@@ -36,7 +36,7 @@ WAIT_FOR_TIMEOUT: int = 1800 # 30 minutes
 
 timeout_message: str = "You are currently timed out, please wait until it ends before trying again"
 closing_message = ("If your question has not been answered or your issue not "
-                   "resolved, we suggest taking a look at [Python's Guide to "
+                   "resolved, we suggest taking a look at [Python Discord's Guide to "
                    "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
                    "to get more effective help.")
 
