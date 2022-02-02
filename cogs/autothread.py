@@ -11,7 +11,7 @@ class AutoThread(commands.Cog):
         if message.author.bot:
             return
         if message.channel.id == AUTO_THREAD_CHANNEL:
-            await message.create_thread("Discussion")
+            await message.create_thread(name="Discussion")
 
 
 def setup(bot):
