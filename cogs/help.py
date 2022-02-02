@@ -199,43 +199,33 @@ class ConfirmView(ui.View):
 class ThreadCloseView(ui.View):
     def __init__(self):
         super().__init__(timeout = None)
-        self._thread_author: Optional[Member] = None
-
-    async def _set_author(self, channel: Thread) -> None:
-        if self._thread_author is not None:
-            return
-
-        self._thread_author = await get_thread_author(channel)
 
     @ui.button(label = "Close", style = ButtonStyle.red, custom_id = f"{CUSTOM_ID_PREFIX}thread_close")  # type: ignore
     async def thread_close_button(self, button: Button, interaction: Interaction):
-        if (interaction.channel.archived or interaction.channel.locked):  # type: ignore
-            button.disabled = True
-            return
-
-        await self._set_author(interaction.channel)  # type: ignore
-        
         button.disabled = True
         await interaction.response.edit_message(view = self)
-        await close_help_thread("BUTTON", interaction.channel, self._thread_author)
+        thread_author = await get_thread_author(interaction.channel)  # type: ignore
+        await close_help_thread("BUTTON", interaction.channel, thread_author)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
-        await self._set_author(interaction.channel)  # type: ignore
 
         # because we aren't assigning the persistent view to a message_id.
         if not isinstance(interaction.channel, Thread) or interaction.channel.parent_id != HELP_CHANNEL_ID:
             return False
 
-        if interaction.user.timeout is not None:
+        if (interaction.channel.archived or interaction.channel.locked):  # type: ignore
+            return False
+
+        if isinstance(interaction.user, Member) and interaction.user.timeout is not None:
             await interaction.send(timeout_message, ephemeral=True)
             return False
 
-        elif interaction.user.id != self._thread_author.id and not interaction.user.get_role(HELP_MOD_ID):
+        thread_author = await get_thread_author(interaction.channel)  # type: ignore
+        if interaction.user.id == thread_author.id or interaction.user.get_role(HELP_MOD_ID):  # type: ignore
+            return True
+        else:
             await interaction.send("You are not allowed to close this thread.", ephemeral=True)
             return False
-
-        return True            
-
 
 class HelpCog(commands.Cog):
     def __init__(self, bot):
