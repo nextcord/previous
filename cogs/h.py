@@ -14,6 +14,7 @@ class H(Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot: Bot = bot
         self.to_add: int = 0
+        self.update_h.start()
 
     @Cog.listener("on_message")
     async def listen_to_h_messages(self, message: Message) -> None:
