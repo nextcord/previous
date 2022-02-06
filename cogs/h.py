@@ -8,10 +8,10 @@ from nextcord.ext.tasks import loop
 
 class H(Cog):
     """Run a task loop to update a channel with the current h's said in the server."""
-    
+
     H_CHANNEL_ID: ClassVar[int] = 123
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Bot) -> None:
         self.bot: Bot = bot
         self.to_add: int = 0
 
@@ -21,15 +21,16 @@ class H(Cog):
         if message.content.lower() == "h":
             self.to_add += 1
 
-    @loop(minutes=6)
+    @loop(minutes=20)
     async def update_h(self) -> None:
         """Loop to check and update counter"""
-        previous_count: int = int(self.channel.name.split(": ")[1]) 
+        previous_count: int = int(self.channel.name.split(": ")[1])
         new_count: int = previous_count + self.to_add
-        self.to_add = 0
         # update channel name if it has changed
         if new_count != previous_count:
             await self.channel.edit(name=f"h: {new_count}")
+
+        self.to_add = 0
 
     @update_h.before_loop
     async def before_update_h(self) -> None:
