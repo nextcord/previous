@@ -110,9 +110,8 @@ class AutoPaste(Cog):
                 return
 
             file_content = str(file_bytes.decode('utf-8'))
-
             language = content_type_to_lang.get(content_type, "text")
-            if isinstance(message.channel, Thread) and message.channel.parent_id == HELP_CHANNEL_ID and content_type == "text/plain":
+            if content_type == "text/plain" and isinstance(message.channel, Thread) and message.channel.parent_id == HELP_CHANNEL_ID:
                 language = "python"
 
             url = await self.do_upload(file_content, language)
