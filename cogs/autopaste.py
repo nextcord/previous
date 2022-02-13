@@ -1,7 +1,7 @@
 from typing import List, Optional
 import re
 
-from nextcord import Message
+from nextcord import Message, Thread
 from nextcord.enums import ButtonStyle
 from nextcord.errors import HTTPException, NotFound
 from nextcord.ext.commands import Cog
@@ -11,6 +11,7 @@ from nextcord.member import Member
 from nextcord.mentions import AllowedMentions
 from nextcord.ui import button, View
 
+from .help import HELP_CHANNEL_ID
 
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
@@ -109,7 +110,10 @@ class AutoPaste(Cog):
                 return
 
             file_content = str(file_bytes.decode('utf-8'))
+
             language = content_type_to_lang.get(content_type, "text")
+            if isinstance(message.channel, Thread) and message.channel.parent_id == HELP_CHANNEL_ID and content_type == "text/plain":
+                language = "python"
 
             url = await self.do_upload(file_content, language)
             delete_view.message=await message.reply(f"Please avoid files for code. Posted to {url}", allowed_mentions=AllowedMentions.none(), view=delete_view)
