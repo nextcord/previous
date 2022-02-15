@@ -15,10 +15,10 @@ class ModPing(commands.Cog):
         self._bot = bot
         self.ui: Optional[Confirm] = None
 
-    @nextcord.slash_command(name="pingmods", description="Pings All Mods. Only use this for reporting, not for help.",
+    @nextcord.slash_command(name="emergency", description="Pings All Mods. Only use this for reporting, not for help.",
                             guild_ids=[881118111967883295])
     async def pingmods(self, inter: nextcord.Interaction):
-        await inter.send("Are you sure you want to ping all mods? This is not ment to be used for help "
+        await inter.send("Are you sure you want to ping all mods? This is not meant to be used for help "
                          "(there is a channel for that) but for reporting scam etc. Missuse will result in a ban",
                          ephemeral=True, view=self.ui, delete_after=180)
 
