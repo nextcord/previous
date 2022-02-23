@@ -8,6 +8,7 @@ authors = ["Tag-Epic <tagepicuwu@gmail.com>"]
 python = "^3.8"
 nextcord = "git+https://github.com/nextcord/nextcord.git#master"
 jishaku = "^2.2.0"
+algoliasearch = "^2.6.1"
 
 [tool.poetry.dev-dependencies]
 
