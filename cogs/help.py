@@ -1,3 +1,4 @@
+import datetime
 from typing import Dict, Optional
 from asyncio import TimeoutError
 from datetime import timedelta
@@ -24,6 +25,7 @@ from nextcord import (
 )
 
 from .utils.split_txtfile import split_txtfile
+from .utils.stats import StatsClient
 
 HELP_CHANNEL_ID: int = 881965127031722004
 HELP_LOGS_CHANNEL_ID: int = 883035085434142781
@@ -39,6 +41,9 @@ closing_message = ("If your question has not been answered or your issue not "
                    "resolved, we suggest taking a look at [Python Discord's Guide to "
                    "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
                    "to get more effective help.")
+
+stats_client: StatsClient = StatsClient(None)
+
 
 async def get_thread_author(channel: Thread) -> Member:
     history = channel.history(oldest_first = True, limit = 1)
@@ -135,12 +140,24 @@ class HelpButton(ui.Button["HelpView"]):
             return message.author.id == interaction.user.id and message.channel.id == thread.id and not thread.archived  # type: ignore
 
         try:
-            await self.view.bot.wait_for("message", timeout=WAIT_FOR_TIMEOUT, check=is_allowed)
+            m: Message = await self.view.bot.wait_for("message", timeout=WAIT_FOR_TIMEOUT, check=is_allowed)
         except TimeoutError:
             await close_help_thread("TIMEOUT [launch_wait_for_message]", thread, interaction.user)
             return
         else:
             await thread.send(f"<@&{HELPER_ROLE_ID}>", delete_after=5)
+
+            role = thread.guild.get_role(HELPER_ROLE_ID)
+            is_helper = role in m.author.roles
+            await stats_client.create_thread(
+                thread_id=thread.id,
+                opened_by=thread.owner_id,
+                initial_author_id=interaction.user.id,
+                initial_message_id=m.id,
+                initial_time_sent=m.created_at,
+                time_opened=thread.created_at,
+                initial_message_is_helper=is_helper
+            )
             return
 
     async def callback(self, interaction: Interaction):
@@ -206,6 +223,11 @@ class ThreadCloseView(ui.View):
         await interaction.response.edit_message(view = self)
         thread_author = await get_thread_author(interaction.channel)  # type: ignore
         await close_help_thread("BUTTON", interaction.channel, thread_author)
+        await stats_client.update_thread(
+            thread_id=interaction.channel.id,
+            time_closed=datetime.datetime.utcnow(),
+            closed_by=interaction.user.id
+        )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
 
@@ -233,6 +255,10 @@ class HelpCog(commands.Cog):
         self.close_empty_threads.start()
         self.bot.loop.create_task(self.create_views())
 
+        # Funky, but saves rewriting everything.
+        global stats_client
+        stats_client.session = bot.session
+
     async def create_views(self):
         if getattr(self.bot, "help_view_set", False) is False:
             self.bot.help_view_set = True
@@ -240,13 +266,24 @@ class HelpCog(commands.Cog):
             self.bot.add_view(ThreadCloseView())
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: Message):
         if message.channel.id == HELP_CHANNEL_ID and message.type is MessageType.thread_created:
             await message.delete(delay = 5)
-        if isinstance(message.channel, Thread) and \
-                message.channel.parent_id == HELP_CHANNEL_ID and \
-                message.type is MessageType.pins_add:
-            await message.delete(delay = 10)
+
+        if isinstance(message.channel, Thread) and message.channel.parent_id == HELP_CHANNEL_ID:
+            if message.type is MessageType.pins_add:
+                await message.delete(delay=10)
+
+            else:
+                role = message.guild.get_role(HELPER_ROLE_ID)
+                is_helper = role in message.author.roles
+                await stats_client.create_message(
+                    is_helper=is_helper,
+                    message_id=message.id,
+                    author_id=message.author.id,
+                    time_sent=message.created_at,
+                    thread_id=message.channel.id,
+                )
 
     @commands.Cog.listener()
     async def on_thread_member_remove(self, member: ThreadMember):
@@ -259,6 +296,11 @@ class HelpCog(commands.Cog):
             return
 
         await close_help_thread("EVENT", thread, thread_author)
+        await stats_client.update_thread(
+            thread_id=thread.id,
+            time_closed=datetime.datetime.utcnow(),
+            closed_by=member.id
+        )
 
     @tasks.loop(hours=24)
     async def close_empty_threads(self):

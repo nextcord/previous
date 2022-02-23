@@ -30,6 +30,7 @@ class StatsClient:
     async def create_thread(
         self,
         thread_id: int,
+        *,
         opened_by: int,
         initial_author_id: int,
         initial_message_id: int,
@@ -135,6 +136,10 @@ class StatsClient:
         return self.base_url + route
 
     async def try_get(self, url: str, **kwargs) -> Optional[ClientResponse]:
+        if not self.session:
+            log.warning("Session was not set before attempted usage.")
+            return None
+
         try:
             async with self.session.get(
                 url,
@@ -144,10 +149,14 @@ class StatsClient:
                 return resp
 
         except HTTPException:
-            log.warning("Failed: GET %s", url)
+            log.debug("Failed: GET %s", url)
             return None
 
     async def try_post(self, url: str, data: Dict, **kwargs) -> Optional[ClientResponse]:
+        if not self.session:
+            log.warning("Session was not set before attempted usage.")
+            return None
+
         try:
             async with self.session.post(
                 url,
@@ -158,10 +167,14 @@ class StatsClient:
                 return resp
 
         except HTTPException:
-            log.warning("Failed: POST %s", url)
+            log.debug("Failed: POST %s", url)
             return None
 
     async def try_patch(self, url: str, data: Dict, **kwargs) -> Optional[ClientResponse]:
+        if not self.session:
+            log.warning("Session was not set before attempted usage.")
+            return None
+
         try:
             async with self.session.patch(
                 url,
@@ -172,5 +185,5 @@ class StatsClient:
                 return resp
 
         except HTTPException:
-            log.warning("Failed: PATCH %s", url)
+            log.debug("Failed: PATCH %s", url)
             return None
