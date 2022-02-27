@@ -98,6 +98,7 @@ class HelpButton(ui.Button["HelpView"]):
             name = f"{self._help_type} help ({interaction.user})",
             type = ChannelType.public_thread,
         )
+        await stats_client.init_thread(thread_id=thread.id, help_type=self._help_type)
 
         await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
             content = f"Help thread for {self._help_type} created by {interaction.user.mention}: {thread.mention}!",
@@ -143,6 +144,7 @@ class HelpButton(ui.Button["HelpView"]):
             m: Message = await self.view.bot.wait_for("message", timeout=WAIT_FOR_TIMEOUT, check=is_allowed)
         except TimeoutError:
             await close_help_thread("TIMEOUT [launch_wait_for_message]", thread, interaction.user)
+            await stats_client.delete_init(thread_id=thread.id)
             return
         else:
             await thread.send(f"<@&{HELPER_ROLE_ID}>", delete_after=5)
@@ -334,6 +336,7 @@ class HelpCog(commands.Cog):
                     continue
             else:
                 await close_help_thread("TASK [close_empty_threads]", thread, thread_author)
+                await stats_client.delete_init(thread_id=thread.id)
                 continue
 
     @commands.command()
