@@ -17,10 +17,13 @@ class StatsClient:
 
         api_key: str = os.environ.get("STATS_API_KEY")
         if not api_key:
-            raise KeyError(
+            log.warning(
                 "STATS_API_KEY is a required environment variable."
                 "Please contact Skelmis#9135 for the current one."
             )
+
+            # This ensures it dies silently when used
+            self.session = None
 
         self.base_headers: Dict[str, str] = {
             "X-API-KEY": api_key,
