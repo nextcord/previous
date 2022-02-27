@@ -30,6 +30,45 @@ class StatsClient:
             "content-type": "application/json"
         }
 
+    async def init_thread(
+        self,
+        thread_id: int,
+        help_type: str
+    ):
+        """Init a thread, without actually creating the thread."""
+        response: Optional[ClientResponse] = await self.try_post(
+            self.route("thread/partial"),
+            data={
+                "thread_id": thread_id,
+                "help_type": help_type,
+            }
+        )
+        if not response:
+            return None
+
+        elif response.status == 201:
+            return None
+
+        _json = await response.json()
+        log.info("Route failed: %s", _json["message"])
+
+    async def delete_init(
+        self,
+        thread_id: int,
+    ):
+        """Deletes the init thread entry."""
+        response: Optional[ClientResponse] = await self.try_delete(
+            self.route(f"thread/partial/{thread_id}")
+        )
+        if not response:
+            return None
+
+        elif response.status == 200:
+            return None
+
+        _json = await response.json()
+        log.info("Route failed: %s", _json["message"])
+
     async def create_thread(
         self,
         thread_id: int,
@@ -189,4 +228,21 @@ class StatsClient:
 
         except HTTPException:
             log.debug("Failed: PATCH %s", url)
+            return None
+
+    async def try_delete(self, url: str, **kwargs) -> Optional[ClientResponse]:
+        if not self.session:
+            log.warning("Session was not set before attempted usage.")
+            return None
+
+        try:
+            async with self.session.delete(
+                url,
+                headers=self.base_headers,
+                **kwargs
+            ) as resp:
+                return resp
+
+        except HTTPException:
+            log.debug("Failed: DELETE %s", url)
             return None
