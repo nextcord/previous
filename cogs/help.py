@@ -434,6 +434,9 @@ class HelpCog(commands.Cog):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent.id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
 
+        # generic_topic should be always set by help thread buttons
+        await stats_client.update_thread(thread_id=ctx.channel.id, specific_topic=topic)
+
         author = match(NAME_TOPIC_REGEX, ctx.channel.name).group(2)  # type: ignore
         await ctx.channel.edit(name=f"{topic} ({author})")
 
