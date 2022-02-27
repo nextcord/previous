@@ -147,8 +147,7 @@ class HelpButton(ui.Button["HelpView"]):
         else:
             await thread.send(f"<@&{HELPER_ROLE_ID}>", delete_after=5)
 
-            role = thread.guild.get_role(HELPER_ROLE_ID)
-            is_helper = role in m.author.roles
+            is_helper = bool(m.author.get_role(HELPER_ROLE_ID))
             await stats_client.create_thread(
                 thread_id=thread.id,
                 opened_by=thread.owner_id,
@@ -275,8 +274,7 @@ class HelpCog(commands.Cog):
                 await message.delete(delay=10)
 
             else:
-                role = message.guild.get_role(HELPER_ROLE_ID)
-                is_helper = role in message.author.roles
+                is_helper = bool(message.author.get_role(HELPER_ROLE_ID))
                 await stats_client.create_message(
                     is_helper=is_helper,
                     message_id=message.id,
