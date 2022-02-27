@@ -89,14 +89,24 @@ async def close_help_thread(method: str, thread_channel, thread_author):
         pass
 
 class HelpButton(ui.Button["HelpView"]):
-    def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str):
-        super().__init__(label = f"{help_type} help", style = style, custom_id = f"{CUSTOM_ID_PREFIX}{custom_id}")
+    def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str, row: Optional[int]=None):
+        super().__init__(
+            label = f"{help_type} help",
+            style = style,
+            custom_id = f"{CUSTOM_ID_PREFIX}{custom_id}",
+            row=row,
+        )
         self._help_type: str = help_type
+
+    @property
+    def help_type(self) -> str:
+        """A 'safe' help type, with pluralised words removed."""
+        return self._help_type[:-1] if self._help_type.endswith("s") else self._help_type
 
     async def create_help_thread(self, interaction: Interaction) -> Thread:
         thread = await interaction.channel.create_thread(
-            name = f"{self._help_type} help ({interaction.user})",
-            type = ChannelType.public_thread,
+            name=f"{self.help_type} help ({interaction.user})",
+            type=ChannelType.public_thread,
         )
         await stats_client.init_thread(thread_id=thread.id, help_type=self._help_type)
 
@@ -107,7 +117,11 @@ class HelpButton(ui.Button["HelpView"]):
 
         type_to_colour: Dict[str, Colour] = {
             "Nextcord": Colour.blurple(),
-            "Python": Colour.green()
+            "Python": Colour.green(),
+            "Misc": Colour.light_grey(),
+            "Slash commands": Colour.light_grey(),
+            "Text commands": Colour.light_grey(),
+            "Migrating": Colour.light_grey(),
         }
 
         em = Embed(
@@ -187,8 +201,54 @@ class HelpView(ui.View):
         super().__init__(timeout = None)
         self.bot: commands.Bot = bot
 
-        self.add_item(HelpButton("Nextcord", style = ButtonStyle.blurple, custom_id = "nextcord"))
-        self.add_item(HelpButton("Python", style = ButtonStyle.green, custom_id = "python"))
+        # First row, or 'main' items
+        self.add_item(
+            HelpButton(
+                "Nextcord",
+                style=ButtonStyle.blurple,
+                custom_id="nextcord", row=0
+            )
+        )
+        self.add_item(
+            HelpButton(
+                "Python",
+                style=ButtonStyle.green,
+                custom_id="python", row=0
+            )
+        )
+        self.add_item(
+            HelpButton(
+                "Misc",
+                style=ButtonStyle.grey,
+                custom_id="misc", row=0
+            )
+        )
+
+        # Second row
+        self.add_item(
+            HelpButton(
+                "Slash commands",
+                style=ButtonStyle.grey,
+                custom_id="slash_commands",
+                row=1
+            )
+        )
+        self.add_item(
+            HelpButton(
+                "Text commands",
+                style=ButtonStyle.grey,
+                custom_id="text_commands",
+                row=1
+            )
+        )
+        self.add_item(
+            HelpButton(
+                "Migrating",
+                style=ButtonStyle.grey,
+                custom_id="migrating",
+                row=1
+            )
+        )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         if interaction.user.timeout is not None:
