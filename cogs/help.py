@@ -357,10 +357,15 @@ class HelpCog(commands.Cog):
         first_thread_message = (await ctx.channel.history(limit=1, oldest_first=True).flatten())[0]
         thread_author = first_thread_message.mentions[0]
         if not (ctx.author.id == thread_author.id or ctx.author.get_role(HELP_MOD_ID)):
-            return await ctx.send("You are not allowed to change the topic of this thread.")
+            return await ctx.send("You are not allowed to close this thread.")
 
         thread_author = await get_thread_author(ctx.channel)
         await close_help_thread("COMMAND", ctx.channel, thread_author)
+        await stats_client.update_thread(
+            thread_id=ctx.channel.id,
+            time_closed=datetime.datetime.utcnow(),
+            closed_by=ctx.author.id
+        )
 
     @commands.command()
     @commands.has_role(HELP_MOD_ID)
