@@ -467,6 +467,16 @@ class HelpCog(commands.Cog):
 
     @commands.command()
     @commands.has_role(HELP_MOD_ID)
+    async def status(self, ctx):
+        if not (isinstance(ctx.channel, Thread) and ctx.channel.parent.id == HELP_CHANNEL_ID):  # type: ignore
+            return await ctx.send("This command can only be used in help threads!")
+
+        author = match(NAME_TOPIC_REGEX, ctx.channel.name).group(2)  # type: ignore
+        # TODO Regex to also get current topic so we only replace emoji
+        await ctx.channel.edit(name=f"{topic} ({author})")
+
+    @commands.command()
+    @commands.has_role(HELP_MOD_ID)
     async def transfer(self, ctx, *, new_author: Member):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent_id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
