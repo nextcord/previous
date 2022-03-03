@@ -4,6 +4,7 @@ from asyncio import TimeoutError
 from datetime import timedelta
 from re import match
 
+import nextcord
 from nextcord.ext import commands, tasks
 from nextcord import (
     Button,
@@ -88,6 +89,69 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     except (HTTPException, Forbidden):
         pass
 
+class TopicDropdown(nextcord.ui.Select):
+    def __init__(self):
+
+        # Set the options that will be presented inside the dropdown
+        options = [
+            nextcord.SelectOption(
+                label='Python help',
+                description='Questions related to Python, but not Nextcord.',
+            ),
+            nextcord.SelectOption(
+                label='Nextcord',
+                description='Questions which are related to Nextcord and '
+                            'do not fit into other more specific categories.'
+            ),
+            nextcord.SelectOption(
+                label="Text commands",
+                description="Questions related to nextcord.ext.commands"
+            ),
+            nextcord.SelectOption(
+                label="Slash commands",
+                description="Questions related to slash commands, application commands, etc"
+            ),
+            nextcord.SelectOption(
+                label="Migrating",
+                description="Any questions relating to migrating from discord.py to Nextcord"
+            ),
+            nextcord.SelectOption(
+                label="Hosting",
+                description="Any questions related to hosting your bot"
+            ),
+            nextcord.SelectOption(
+                label="Databases",
+                description="Any questions related to using a database with Python"
+            ),
+            nextcord.SelectOption(
+                label='Misc',
+                description="Doesn't fit into any other categories listed."
+            ),
+        ]
+
+        # The placeholder is what will be shown when no option is chosen
+        # The min and max values indicate we can only pick one of the three options
+        # The options parameter defines the dropdown options. We defined this above
+        super().__init__(placeholder='Choose your favourite colour...', min_values=1, max_values=1, options=options)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        # Use the interaction object to send a response message containing
+        # the user's favourite colour or choice. The self object refers to the
+        # Select object, and the values attribute gets a list of the user's
+        # selected options. We only want the first one.
+        await interaction.response.send_message(f'Your favourite colour is {self.values[0]}')
+
+
+class TopicView(nextcord.ui.View):
+    def __init__(self):
+        super().__init__()
+
+        # Adds the dropdown to our view object.
+        self.dropdown = TopicDropdown()
+        self.add_item(self.dropdown)
+
+
+
 class HelpButton(ui.Button["HelpView"]):
     def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str, row: Optional[int]=None):
         super().__init__(
@@ -98,14 +162,9 @@ class HelpButton(ui.Button["HelpView"]):
         )
         self._help_type: str = help_type
 
-    @property
-    def help_type(self) -> str:
-        """A 'safe' help type, with pluralised words removed."""
-        return self._help_type[:-1] if self._help_type.endswith("s") else self._help_type
-
     async def create_help_thread(self, interaction: Interaction) -> Thread:
         thread = await interaction.channel.create_thread(
-            name=f"{self.help_type} help ({interaction.user})",
+            name=f"{self._help_type} help ({interaction.user})",
             type=ChannelType.public_thread,
         )
         await stats_client.init_thread(thread_id=thread.id, help_type=self._help_type)
@@ -115,18 +174,9 @@ class HelpButton(ui.Button["HelpView"]):
             allowed_mentions = AllowedMentions(users=False)
         )
 
-        type_to_colour: Dict[str, Colour] = {
-            "Nextcord": Colour.blurple(),
-            "Python": Colour.green(),
-            "Misc": Colour.light_grey(),
-            "Slash commands": Colour.light_grey(),
-            "Text commands": Colour.light_grey(),
-            "Migrating": Colour.light_grey(),
-        }
-
         em = Embed(
             title = f"{self._help_type} Help thread",
-            colour = type_to_colour.get(self._help_type, Colour.blurple()),
+            colour = Colour.blurple(),
             description = (
                 "Please explain your issue in detail, helpers will respond as soon as possible."
                 "\n\n**Please include the following in your initial message:**"
@@ -161,6 +211,20 @@ class HelpButton(ui.Button["HelpView"]):
             await stats_client.delete_init(thread_id=thread.id)
             return
         else:
+            # Get help channel thread first
+            topic_view = TopicView()
+            await thread.send(
+                f"Please pick the topic which best suits your needs, {interaction.user.mention}",
+                view=topic_view
+            )
+            await topic_view.wait()
+            selected_item = topic_view.dropdown.values[0]
+
+            await thread.edit(
+                name=f"{selected_item} help ({interaction.user})",
+            )
+
+            # Drag everyone else in
             await thread.send(f"<@&{HELPER_ROLE_ID}>", delete_after=5)
 
             is_helper = bool(m.author.get_role(HELPER_ROLE_ID))
@@ -171,7 +235,8 @@ class HelpButton(ui.Button["HelpView"]):
                 initial_message_id=m.id,
                 initial_time_sent=m.created_at,
                 time_opened=thread.created_at,
-                initial_message_is_helper=is_helper
+                initial_message_is_helper=is_helper,
+                generic_topic=selected_item
             )
             return
 
@@ -204,49 +269,9 @@ class HelpView(ui.View):
         # First row, or 'main' items
         self.add_item(
             HelpButton(
-                "Nextcord",
+                "Open help thread",
                 style=ButtonStyle.blurple,
-                custom_id="nextcord", row=0
-            )
-        )
-        self.add_item(
-            HelpButton(
-                "Python",
-                style=ButtonStyle.green,
-                custom_id="python", row=0
-            )
-        )
-        self.add_item(
-            HelpButton(
-                "Misc",
-                style=ButtonStyle.grey,
-                custom_id="misc", row=0
-            )
-        )
-
-        # Second row
-        self.add_item(
-            HelpButton(
-                "Slash commands",
-                style=ButtonStyle.grey,
-                custom_id="slash_commands",
-                row=1
-            )
-        )
-        self.add_item(
-            HelpButton(
-                "Text commands",
-                style=ButtonStyle.grey,
-                custom_id="text_commands",
-                row=1
-            )
-        )
-        self.add_item(
-            HelpButton(
-                "Migrating",
-                style=ButtonStyle.grey,
-                custom_id="migrating",
-                row=1
+                custom_id="new_help_thread"
             )
         )
 
