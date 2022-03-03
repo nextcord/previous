@@ -312,12 +312,10 @@ class HelpCog(commands.Cog):
         if not isinstance(ctx.channel, Thread) or ctx.channel.parent_id != HELP_CHANNEL_ID:
             return
             
-        first_thread_message = (await ctx.channel.history(limit=1, oldest_first=True).flatten())[0]
-        thread_author = first_thread_message.mentions[0]
-        if not (ctx.author.id == thread_author.id or ctx.author.get_role(HELP_MOD_ID)):
-            return await ctx.send("You are not allowed to change the topic of this thread.")
-
         thread_author = await get_thread_author(ctx.channel)
+        if not (ctx.author.id == thread_author.id or ctx.author.get_role(HELP_MOD_ID)):
+            return await ctx.send("You are not allowed to close this thread.")
+
         await close_help_thread("COMMAND", ctx.channel, thread_author)
 
     @commands.command()
