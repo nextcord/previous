@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional, Union
 from asyncio import TimeoutError
 from datetime import timedelta
 from re import match
@@ -8,6 +8,7 @@ from nextcord import (
     Button,
     ButtonStyle,
     ChannelType,
+    ClientUser,
     Colour,
     Embed,
     Forbidden,
@@ -47,7 +48,7 @@ async def get_thread_author(channel: Thread) -> Member:
     return user
 
 
-async def close_help_thread(method: str, thread_channel, thread_author):
+async def close_help_thread(method: str, thread_channel: Thread, thread_author: Member, closed_by: Union[Member, ClientUser]):
     """Closes a help thread. Is called from either the close button or the
     =close command.
     """
@@ -73,7 +74,10 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
         embed=Embed(
             title=":x: Closed help thread",
-            description=f"{thread_channel.mention}\n\nHelp thread created by {thread_author.mention} has been closed by **{method}**",
+            description=(
+                f"{thread_channel.mention}\n\nHelp thread created by {thread_author.mention} has been closed by {closed_by.mention} "
+                f"using **{method}**."
+            ),
         )
     )
     # Make some slight changes to the previous thread-closer embed
@@ -144,7 +148,7 @@ class HelpButton(ui.Button["HelpView"]):
         try:
             await self.view.bot.wait_for("message", timeout=WAIT_FOR_TIMEOUT, check=is_allowed)
         except TimeoutError:
-            await close_help_thread("TIMEOUT [launch_wait_for_message]", thread, interaction.user)
+            await close_help_thread("TIMEOUT [launch_wait_for_message]", thread, interaction.user, self.view.bot.user)
             return
         else:
             await thread.send(f"<@&{HELPER_ROLE_ID}>", delete_after=5)
@@ -212,7 +216,7 @@ class ThreadCloseView(ui.View):
         button.disabled = True
         await interaction.response.edit_message(view = self)
         thread_author = await get_thread_author(interaction.channel)  # type: ignore
-        await close_help_thread("BUTTON", interaction.channel, thread_author)
+        await close_help_thread("BUTTON", interaction.channel, thread_author, interaction.user)
 
     async def interaction_check(self, interaction: Interaction) -> bool:
 
@@ -235,7 +239,7 @@ class ThreadCloseView(ui.View):
             return False
 
 class HelpCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.close_empty_threads.start()
         self.bot.loop.create_task(self.create_views())
@@ -265,7 +269,7 @@ class HelpCog(commands.Cog):
         if member.id != thread_author.id:
             return
 
-        await close_help_thread("EVENT", thread, thread_author)
+        await close_help_thread("EVENT [thread_member_remove]", thread, thread_author, self.bot.user)
 
     @tasks.loop(hours=24)
     async def close_empty_threads(self):
@@ -300,7 +304,7 @@ class HelpCog(commands.Cog):
                     await thread.send(f"<@&{HELPER_ROLE_ID}>", delete_after=5)
                     continue
             else:
-                await close_help_thread("TASK [close_empty_threads]", thread, thread_author)
+                await close_help_thread("TASK [close_empty_threads]", thread, thread_author, self.bot.user)
                 continue
 
     @commands.command()
@@ -323,7 +327,7 @@ class HelpCog(commands.Cog):
         if not (ctx.author.id == thread_author.id or ctx.author.get_role(HELP_MOD_ID)):
             return await ctx.send("You are not allowed to close this thread.")
 
-        await close_help_thread("COMMAND", ctx.channel, thread_author)
+        await close_help_thread("COMMAND", ctx.channel, thread_author, ctx.author)
 
     @commands.command()
     @commands.has_role(HELP_MOD_ID)
