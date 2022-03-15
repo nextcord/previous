@@ -70,9 +70,12 @@ async def close_help_thread(method: str, thread_channel, thread_author):
 
     await thread_channel.send(embed=embed_reply)  # Send the closing message to the help thread
     await thread_channel.edit(locked = True, archived = True)  # Lock thread
-    await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
-        content = f"<t:{int(time.time())}:R> :x: `{thread_channel.name}` Help thread (created by {thread_author.mention}) has been closed."
-        allowed_mentions = AllowedMentions(users=False)
+    # Send log
+    await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
+        embed=Embed(
+            title=":x: Closed help thread",
+            description=f"{thread_channel.mention}\n\nHelp thread created by {thread_author.mention} has been closed by **{method}**",
+        )
     )
     # Make some slight changes to the previous thread-closer embed
     # to send to the user via DM.
@@ -96,9 +99,12 @@ class HelpButton(ui.Button["HelpView"]):
             type = ChannelType.public_thread,
         )
 
+        # Send log
         await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-            content = f"<t:{int(time.time())}:R> :white_check_mark: {thread.mention} Help thread for **{self._help_type}** created by {interaction.user.mention}!",
-            allowed_mentions = AllowedMentions(users=False)
+            embed=Embed(
+                title=":white_check_mark: Help thread created",
+                description=f"{thread.mention}\n\nHelp thread for **{self._help_type}** created by {interaction.user.mention}!",
+            )
         )
 
         type_to_colour: Dict[str, Colour] = {
@@ -341,10 +347,15 @@ class HelpCog(commands.Cog):
 
         await ctx.channel.edit(name=f"{topic} ({new_author})")
         await first_thread_message.edit(content=new_author.mention)
-        await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
-            content=f"<t:{int(time.time())}:R> :arrow_right: {ctx.channel.mention} Help thread created by {old_author.mention} " \
-                    f"has been transferred to {new_author.mention} by {ctx.author.mention}.",
-            allowed_mentions = AllowedMentions(users=False)
+        # Send log
+        await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
+            embed=Embed(
+                title=":arrow_right: Help thread transferred",
+                description=(
+                    f"{ctx.channel.mention}\n\nHelp thread created by {old_author.mention} "
+                    f"has been transferred to {new_author.mention} by {ctx.author.mention}."
+                ),
+            )
         )
 
 def setup(bot):
