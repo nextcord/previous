@@ -1,4 +1,5 @@
-from typing import Dict, Optional
+import time
+from typing import Dict
 from asyncio import TimeoutError
 from datetime import timedelta
 from re import match
@@ -70,7 +71,8 @@ async def close_help_thread(method: str, thread_channel, thread_author):
     await thread_channel.send(embed=embed_reply)  # Send the closing message to the help thread
     await thread_channel.edit(locked = True, archived = True)  # Lock thread
     await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
-        content = f"Help thread {thread_channel.name} (created by {thread_author.name}) has been closed."
+        content = f"<t:{int(time.time())}:R> :x: `{thread_channel.name}` Help thread (created by {thread_author.mention}) has been closed."
+        allowed_mentions = AllowedMentions(users=False)
     )
     # Make some slight changes to the previous thread-closer embed
     # to send to the user via DM.
@@ -95,7 +97,7 @@ class HelpButton(ui.Button["HelpView"]):
         )
 
         await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-            content = f"Help thread for {self._help_type} created by {interaction.user.mention}: {thread.mention}!",
+            content = f"<t:{int(time.time())}:R> :white_check_mark: {thread.mention} Help thread for **{self._help_type}** created by {interaction.user.mention}!",
             allowed_mentions = AllowedMentions(users=False)
         )
 
@@ -340,8 +342,9 @@ class HelpCog(commands.Cog):
         await ctx.channel.edit(name=f"{topic} ({new_author})")
         await first_thread_message.edit(content=new_author.mention)
         await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
-            content=f"Help thread {ctx.channel.mention} (created by {old_author.mention}) " \
+            content=f"<t:{int(time.time())}:R> :arrow_right: {ctx.channel.mention} Help thread created by {old_author.mention} " \
                     f"has been transferred to {new_author.mention} by {ctx.author.mention}.",
+            allowed_mentions = AllowedMentions(users=False)
         )
 
 def setup(bot):
