@@ -31,7 +31,7 @@ HELPER_ROLE_ID: int = 882192899519954944
 HELP_MOD_ID: int = 896860382226956329
 GUILD_ID: int = 881118111967883295
 CUSTOM_ID_PREFIX: str = "help:"
-NAME_TOPIC_REGEX: str = r"(^.*?) \((.*?[0-9]{4})\)$"
+NAME_TOPIC_REGEX: str = r"\((?:[^)]*)\)[^(]*$"
 WAIT_FOR_TIMEOUT: int = 1800 # 30 minutes
 
 timeout_message: str = "You are currently timed out, please wait until it ends before trying again"
