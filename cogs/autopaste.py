@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 import re
 
-from nextcord import Attachment, Message, Thread
+from nextcord import Message, Thread
 from nextcord.enums import ButtonStyle
 from nextcord.errors import HTTPException, NotFound
 from nextcord.ext.commands import Cog
@@ -28,14 +28,14 @@ supported_content_types: List[str] = [
     "text/plain",
     "text/markdown",
     "text/x-python",
-    # "application/json", currently not supported/service raises 422
+    "application/json",
     "application/javascript",
 ]
 content_type_to_lang = {
     "text/plain": "text",
     "text/markdown": "markdown",
     "text/x-python": "python",
-    # "application/json": "json", currently not supported/service raises 422
+    "application/json": "json",
     "application/javascript": "javascript"
 }
 
@@ -79,7 +79,11 @@ class AutoPaste(Cog):
         self.bot: Bot = bot
     
     async def do_upload(self, content: str, language: str) -> str:
-        res = await self.bot.session.post("https://paste.nextcord.dev/api/new", data=str(content))  # type: ignore
+        res = await self.bot.session.post(  # type: ignore
+            url="https://paste.nextcord.dev/api/new",
+            json={"content": str(content), "language": language},
+            headers={"Content-Type": "application/json"},
+        )
         paste_id = (await res.json())["key"]
         return f"https://paste.nextcord.dev/?id={paste_id}&language={language}"
 
@@ -97,7 +101,6 @@ class AutoPaste(Cog):
         # Files
         if message.attachments:
             uploaded_files: List[Tuple[str, str]] = []
-            attachment: Attachment
             for attachment in message.attachments:
                 if not attachment.content_type:
                     continue
