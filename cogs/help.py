@@ -324,7 +324,7 @@ class HelpCog(commands.Cog):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent.id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
 
-        author = match(NAME_TOPIC_REGEX, ctx.channel.name).group(2)  # type: ignore
+        author = match(NAME_TOPIC_REGEX, ctx.channel.name).group("author")  # type: ignore
         await ctx.channel.edit(name=f"{topic} ({author})")
 
     @commands.command()
@@ -333,7 +333,7 @@ class HelpCog(commands.Cog):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent_id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
 
-        topic = match(NAME_TOPIC_REGEX, ctx.channel.name).group(1)  # type: ignore
+        topic = match(NAME_TOPIC_REGEX, ctx.channel.name).group("topic")  # type: ignore
         first_thread_message = (await ctx.channel.history(limit=1, oldest_first=True).flatten())[0]
         old_author = first_thread_message.mentions[0]
 
