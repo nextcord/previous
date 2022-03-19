@@ -16,6 +16,7 @@ from nextcord import (
     Interaction,
     Member,
     MessageType,
+    NotFound,
     Thread,
     ThreadMember,
     Message,
@@ -114,6 +115,10 @@ async def reopen_help_thread(
     reason: Optional[str]
         An optional reason for reopening the thread.
     """
+
+    # "Open" the thread.
+    await thread.edit(archived=False, locked=False)
+
     # Delete the closed embedded message
     # limit=5 to be sure.
     async for message in thread.history(limit=5):
@@ -121,23 +126,39 @@ async def reopen_help_thread(
             # is this really necessary?
             first_embed = message.embeds[0]
             if first_embed.title == "This thread has now been closed":
-                await message.delete()
+                try:
+                    await message.delete()
+                except (HTTPException, Forbidden, NotFound):
+                    pass
 
     # Edit the initial message with a working button.
     starter_message: Tuple[Member, Message] = await get_thread_author(thread, return_message=True)  # type: ignore
-    author, message = starter_message
+    thread_author, message = starter_message
     await message.edit(view=ThreadCloseView())
     
-    # Send log
-    await thread.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # type: ignore
-        embed=Embed(
-            title="♻️ Help thread reopened",
-            description=(
-                f"{thread.mention}\n\nHelp thread created by {thread.mention} has been reopened by {author.mention} "
-                f"with reason: \"{reason}\" using **{method}**" if reason else f"using **{method}**"
-            )
-        )
+    method_reason = f"with reason: \"{reason}\" using **{method}**" if reason else f"using **{method}**"
+    reopen_embed = Embed(
+        title="♻️ Help thread reopened",
+        description=f"{thread.mention}\n\nHelp thread created by {thread_author.mention} "
+                    f"has been reopened by {author.mention} {method_reason}",
+        colour=Colour.dark_theme()
     )
+    # Send log
+    await thread.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(embed=reopen_embed)  # type: ignore
+
+    # Make some slight changes to the log embed
+    # to send to the user via DM.
+    reopen_embed.description = (
+        f"Your help thread in the Nextcord server has been reopened. Use [**this link**]({message.jump_url}) to access it."
+    )
+
+    if thread.guild.icon:
+        reopen_embed.set_thumbnail(url=thread.guild.icon.url)
+    try:
+        await thread_author.send(embed=reopen_embed)
+    except (HTTPException, Forbidden):
+        pass
+
 
 class HelpButton(ui.Button["HelpView"]):
     def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str):
@@ -286,6 +307,11 @@ class ThreadCloseView(ui.View):
 class HelpCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        # This is a hacky way to reopen a help thread by un-archiving it manually -
+        # or using the reopen command.
+        # Without this hack, the bot would be try to reopen - 
+        # a thread that was already reopened.
+        self._thread_reopened_from_command = False
         self.close_empty_threads.start()
         self.bot.loop.create_task(self.create_views())
 
@@ -318,17 +344,25 @@ class HelpCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_thread_update(self, before: Thread, after: Thread):
-        if after.parent_id != HELP_CHANNEL_ID or (after.archived or after.locked):
+        print("on_thread_update event", before.archived, after.archived, before.locked, after.locked)
+        # Check if it's a help thread.
+        if after.parent_id != HELP_CHANNEL_ID:
+            return
+        
+        # Check if it is/was archived or locked.
+        if not (before.archived or before.locked) or (after.archived or after.locked):
             return
 
-        if before.archived and not after.archived:
+        if not self._thread_reopened_from_command:
             await reopen_help_thread(
                 self.bot.user.id,
                 after,
                 "EVENT [on_thread_update]",
                 author=self.bot.user,
             )
-   
+        
+        # Refer to the comment in the __init__ method.
+        self._thread_reopened_from_command = False
 
     @tasks.loop(hours=24)
     async def close_empty_threads(self):
@@ -432,13 +466,19 @@ class HelpCog(commands.Cog):
             if thread.parent_id != HELP_CHANNEL_ID:
                 return await ctx.send("That is not a help thread.")
 
+        if not thread.locked:
+            return await ctx.send(f"{'This' if ctx.channel.id == thread.id else 'That'} thread is not closed.")
+
+        # Refer to the comment in the __init__ method.
+        self._thread_reopened_from_command = True
         await reopen_help_thread(
             self.bot.user.id,
             thread,
             "COMMAND",
-            author=self.bot.user,
-            reason=reason
+            author=ctx.author,
+            reason=reason,
         )
+        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
 def setup(bot):
     bot.add_cog(HelpCog(bot))
