@@ -325,7 +325,7 @@ class HelpCog(commands.Cog):
             await reopen_help_thread(
                 self.bot.user.id,
                 after,
-                "EVENT [ON_THREAD_UPDATE]",
+                "EVENT [on_thread_update]",
                 author=self.bot.user,
             )
    
