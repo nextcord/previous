@@ -1,10 +1,11 @@
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Union, Tuple
 from asyncio import TimeoutError
 from datetime import timedelta
 from re import match
 
 from nextcord.ext import commands, tasks
 from nextcord import (
+    AllowedMentions,
     Button,
     ButtonStyle,
     ChannelType,
@@ -20,7 +21,6 @@ from nextcord import (
     Message,
     ui,
     utils,
-    AllowedMentions
 )
 
 from .utils.split_txtfile import split_txtfile
@@ -40,11 +40,19 @@ closing_message = ("If your question has not been answered or your issue not "
                    "Asking Good Questions](https://www.pythondiscord.com/pages/guides/pydis-guides/asking-good-questions/) "
                    "to get more effective help.")
 
-async def get_thread_author(channel: Thread) -> Member:
+
+async def get_thread_author(channel: Thread, *, return_message: bool = False) -> Union[Member, Tuple[Member, Message]]:
+    """ Returns the author of the thread.
+    This works by getting the first message in the thread, and then getting the first mentions of that message.
+    
+    If return_message is True, it will return a tuple of (author, message) with message being from where we got the author.
+    """
     history = channel.history(oldest_first = True, limit = 1)
-    history_flat = await history.flatten()
-    user = history_flat[0].mentions[0]
-    return user
+    history_flat: List[Message] = await history.flatten()
+    message: Message = history_flat[0]
+    user: Member = message.mentions[0]  # type: ignore
+
+    return user if not return_message else (user, message)
 
 
 async def close_help_thread(method: str, thread_channel, thread_author):
@@ -82,6 +90,54 @@ async def close_help_thread(method: str, thread_channel, thread_author):
         await thread_author.send(embed=embed_reply)
     except (HTTPException, Forbidden):
         pass
+
+# TODO: is it really necessary to check the author of the message or the embed?
+async def reopen_help_thread(
+    bot_id: int,
+    thread: Thread,
+    method: str,
+    /,
+    *,
+    author: Member,
+    reason: Optional[str] = None
+) -> None:
+    """Reopens a help thread. Is called from either the reopen command or the on_thread_update event.
+    
+    Parameters
+    ----------
+    bot_id: int
+        The client ID.
+    thread: Thread
+        The thread to reopen.
+    method: str
+        The method used to reopen the thread.
+    reason: Optional[str]
+        An optional reason for reopening the thread.
+    """
+    # Delete the closed embedded message
+    # limit=5 to be sure.
+    async for message in thread.history(limit=5):
+        if message.author.id == bot_id and message.embeds:
+            # is this really necessary?
+            first_embed = message.embeds[0]
+            if first_embed.title == "This thread has now been closed":
+                await message.delete()
+
+    # Edit the initial message with a working button.
+    starter_message: Tuple[Member, Message] = await get_thread_author(thread, return_message=True)  # type: ignore
+    author, message = starter_message
+    await message.edit(view=ThreadCloseView())
+    
+    # Send log
+    await thread.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # type: ignore
+        embed=Embed(
+            title="♻️ Help thread reopened",
+            description=(
+                f"{thread.mention}\n\nHelp thread created by {thread.mention} has been reopened by {author.mention} "
+                f"with reason: \"{reason}\" using **{method}**" if reason else f"using **{method}**"
+            )
+        )
+    )
 
 class HelpButton(ui.Button["HelpView"]):
     def __init__(self, help_type: str, *, style: ButtonStyle, custom_id: str):
@@ -251,14 +307,28 @@ class HelpCog(commands.Cog):
     @commands.Cog.listener()
     async def on_thread_member_remove(self, member: ThreadMember):
         thread = member.thread
-        if thread.parent_id != HELP_CHANNEL_ID or thread.archived:
+        if thread.parent_id != HELP_CHANNEL_ID or (thread.archived or thread.locked):
             return
 
         thread_author = await get_thread_author(thread)
-        if member.id != thread_author.id:
+        if member.id != thread_author.id:  # type: ignore
             return
 
         await close_help_thread("EVENT", thread, thread_author)
+
+    @commands.Cog.listener()
+    async def on_thread_update(self, before: Thread, after: Thread):
+        if after.parent_id != HELP_CHANNEL_ID or (after.archived or after.locked):
+            return
+
+        if before.archived and not after.archived:
+            await reopen_help_thread(
+                self.bot.user.id,
+                after,
+                "EVENT [ON_THREAD_UPDATE]",
+                author=self.bot.user,
+            )
+   
 
     @tasks.loop(hours=24)
     async def close_empty_threads(self):
@@ -312,7 +382,7 @@ class HelpCog(commands.Cog):
         if not isinstance(ctx.channel, Thread) or ctx.channel.parent_id != HELP_CHANNEL_ID:
             return
             
-        thread_author = await get_thread_author(ctx.channel)
+        thread_author: Member = await get_thread_author(ctx.channel)  # type: ignore
         if not (ctx.author.id == thread_author.id or ctx.author.get_role(HELP_MOD_ID)):
             return await ctx.send("You are not allowed to close this thread.")
 
@@ -342,6 +412,32 @@ class HelpCog(commands.Cog):
         await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
             content=f"Help thread {ctx.channel.mention} (created by {old_author.mention}) " \
                     f"has been transferred to {new_author.mention} by {ctx.author.mention}.",
+        )
+
+    @commands.command()
+    @commands.has_role(HELP_MOD_ID)
+    async def reopen(self, ctx, thread: Optional[Thread], *, reason: str = "No reason given."):
+        """ Re-opens a help thread after it has been closed. 
+        
+        ``thread`` is optional because it will default to the current thread if not specified, will raise an error if it's not a help thread.
+        ``reason`` is shown in the help logs channel and is optional. Defaults to "No reason given."
+
+        This command is only available to helpers and can be used (compared to other related commands) outside a help thread.
+        """
+        if not thread:
+            if not (isinstance(ctx.channel, Thread) and ctx.channel.parent.id == HELP_CHANNEL_ID):  # type: ignore
+                return await ctx.send("`thread` is required if not in a help thread.")
+            thread = ctx.channel
+        else:
+            if thread.parent_id != HELP_CHANNEL_ID:
+                return await ctx.send("That is not a help thread.")
+
+        await reopen_help_thread(
+            self.bot.user.id,
+            thread,
+            "COMMAND",
+            author=self.bot.user,
+            reason=reason
         )
 
 def setup(bot):
