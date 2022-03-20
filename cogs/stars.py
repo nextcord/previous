@@ -15,15 +15,15 @@ class GitHubStars(commands.Cog):
     async def get_stars(self, repo: str) -> int:
         """Get number of GitHub stars for a given repo in the form 'owner/repository'"""
         async with aiohttp.ClientSession() as session:
-            async with session.get(f'https://api.github.com/repos/{repo}') as resp:
+            async with session.get(f"https://api.github.com/repos/{repo}") as resp:
                 data = await resp.json()
-                return int(data['stargazers_count'])
+                return int(data["stargazers_count"])
 
     @loop(minutes=30)
     async def update_stars(self):
         """Loop to check and update stars"""
-        nextcord_stars = await self.get_stars('nextcord/nextcord')
-        nextcord_v3_stars = await self.get_stars('nextcord/nextcord-v3')
+        nextcord_stars = await self.get_stars("nextcord/nextcord")
+        nextcord_v3_stars = await self.get_stars("nextcord/nextcord-v3")
         channel_name = "v2 {}🌟| v3 {}🌟".format(nextcord_stars, nextcord_v3_stars)
         # update channel name if it has changed
         if self.__channel.name != channel_name:

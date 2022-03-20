@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple
 import re
+from typing import List, Optional
 
 from nextcord import Message, Thread
 from nextcord.enums import ButtonStyle
@@ -15,15 +16,8 @@ from .help import HELP_CHANNEL_ID
 
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
-discord_to_workbin = {
-    "py": "python",
-    "js": "javascript"
-}
-other_paste_services = [
-    "pastebin.com",
-    "sourceb.in",
-    "srcb.in"
-]
+discord_to_workbin = {"py": "python", "js": "javascript"}
+other_paste_services = ["pastebin.com", "sourceb.in", "srcb.in"]
 supported_content_types: List[str] = [
     "text/plain",
     "text/markdown",
@@ -36,7 +30,7 @@ content_type_to_lang = {
     "text/markdown": "markdown",
     "text/x-python": "python",
     "application/json": "json",
-    "application/javascript": "javascript"
+    "application/javascript": "javascript",
 }
 
 
@@ -63,12 +57,18 @@ class DeleteMessage(View):
             pass
 
     async def interaction_check(self, interaction: Interaction) -> bool:
-        if not interaction.user or not interaction.channel or not isinstance(interaction.user, Member):
+        if (
+            not interaction.user
+            or not interaction.channel
+            or not isinstance(interaction.user, Member)
+        ):
             await self.on_timeout()
             return False
 
-        if interaction.user.id == self.message_author.id or \
-            interaction.channel.permissions_for(interaction.user).manage_messages:  # type: ignore
+        if (
+            interaction.user.id == self.message_author.id
+            or interaction.channel.permissions_for(interaction.user).manage_messages
+        ):  # type: ignore
             return True
 
         return False
@@ -77,7 +77,7 @@ class DeleteMessage(View):
 class AutoPaste(Cog):
     def __init__(self, bot) -> None:
         self.bot: Bot = bot
-    
+
     async def do_upload(self, content: str, language: str) -> str:
         res = await self.bot.session.post(  # type: ignore
             url="https://paste.nextcord.dev/api/new",
@@ -146,7 +146,10 @@ class AutoPaste(Cog):
             # Check for bad paste services
             for paste_service in other_paste_services:
                 if paste_service in message.content:
-                    delete_view.message=await message.reply("Please avoid other paste services than https://paste.nextcord.dev.", view=delete_view)
+                    delete_view.message = await message.reply(
+                        "Please avoid other paste services than https://paste.nextcord.dev.",
+                        view=delete_view,
+                    )
                     return
             return
 
@@ -155,12 +158,12 @@ class AutoPaste(Cog):
         code = regex_result.group(2)
 
         url = await self.do_upload(code, language)
-        delete_view.message=await message.reply(f"Please avoid codeblocks for code. Posted to -> {url}", allowed_mentions=AllowedMentions.none(), view=delete_view)
+        delete_view.message = await message.reply(
+            f"Please avoid codeblocks for code. Posted to -> {url}",
+            allowed_mentions=AllowedMentions.none(),
+            view=delete_view,
+        )
+
 
 def setup(bot):
     bot.add_cog(AutoPaste(bot))
-
-
-
-
-
