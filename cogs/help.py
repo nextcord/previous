@@ -13,7 +13,7 @@ from nextcord.ext import commands, tasks
 from .utils.split_txtfile import split_txtfile
 
 HELP_CHANNEL_ID: int = int(env["HELP_CHANNEL_ID"])
-HELP_LOGS_CHANNEL_ID: int = int(env["HELP_OG_CHANNEL_ID"])
+HELP_LOGS_CHANNEL_ID: int = int(env["HELP_LOG_CHANNEL_ID"])
 HELPER_ROLE_ID: int = int(env["HELP_NOTIFICATION_ROLE_ID"])
 HELP_MOD_ID: int = int(env["HELP_MOD_ROLE_ID"])
 GUILD_ID: int = int(env["GUILD_ID"])
