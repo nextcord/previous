@@ -10,7 +10,8 @@ class GitHubStars(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.__bot = bot
-        self.update_stars.start()
+        # TODO Uncomment
+        # self.update_stars.start()
 
     async def get_stars(self, repo: str) -> int:
         """Get number of GitHub stars for a given repo in the form 'owner/repository'"""

@@ -11,8 +11,10 @@ log = logging.getLogger(__name__)
 
 class StatsClient:
     """A simple interaction client for https://nextcord.koldfusion.xyz"""
-    def __init__(self, session: ClientSession):
-        self.session: ClientSession = session
+    def __init__(self, bot):
+        self._bot = bot
+        self._set_session = True
+        self.session: Optional[ClientSession] = None
         self.base_url: str = "https://nextcord.koldfusion.xyz/api/v1/"
 
         api_key: str = os.environ.get("STATS_API_KEY")
@@ -23,12 +25,18 @@ class StatsClient:
             )
 
             # This ensures it dies silently when used
-            self.session = None
+            self._set_session = False
 
         self.base_headers: Dict[str, str] = {
             "X-API-KEY": api_key,
             "content-type": "application/json"
         }
+
+    def set_session(self):
+        if not self._set_session:
+            return None
+
+        self.session = self._bot.session
 
     async def init_thread(
         self,
@@ -36,6 +44,7 @@ class StatsClient:
         help_type: str
     ):
         """Init a thread, without actually creating the thread."""
+        self.set_session()
         response: Optional[ClientResponse] = await self.try_post(
             self.route("thread/partial"),
             data={
@@ -57,6 +66,7 @@ class StatsClient:
         thread_id: int,
     ):
         """Deletes the init thread entry."""
+        self.set_session()
         response: Optional[ClientResponse] = await self.try_delete(
             self.route(f"thread/partial/{thread_id}")
         )
@@ -82,6 +92,7 @@ class StatsClient:
         initial_message_is_helper: bool = False,
     ) -> None:
         """Called when the first actual message is sent in a thread."""
+        self.set_session()
         response: Optional[ClientResponse] = await self.try_post(
             self.route("thread"),
             data={
@@ -117,6 +128,7 @@ class StatsClient:
         is_helper: bool = False
     ) -> None:
         """Called when a message is sent within a thread."""
+        self.set_session()
         response: Optional[ClientResponse] = await self.try_post(
             self.route(f"thread/{thread_id}/messages"),
             data={
@@ -146,6 +158,7 @@ class StatsClient:
         time_closed: Optional[datetime.datetime] = None
     ) -> None:
         """Called during things like the topic command."""
+        self.set_session()
         # We do this so as to *not* modify other params
         data = {}
         if closed_by:
