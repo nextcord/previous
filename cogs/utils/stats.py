@@ -179,7 +179,7 @@ class StatsClient:
 
     async def try_get(self, url: str, **kwargs) -> Optional[ClientResponse]:
         if not self.session:
-            log.warning("Session was not set before attempted usage.")
+            log.debug("Session was not set before attempted usage.")
             return None
 
         try:
@@ -196,7 +196,7 @@ class StatsClient:
 
     async def try_post(self, url: str, data: Dict, **kwargs) -> Optional[ClientResponse]:
         if not self.session:
-            log.warning("Session was not set before attempted usage.")
+            log.debug("Session was not set before attempted usage.")
             return None
 
         try:
@@ -214,7 +214,7 @@ class StatsClient:
 
     async def try_patch(self, url: str, data: Dict, **kwargs) -> Optional[ClientResponse]:
         if not self.session:
-            log.warning("Session was not set before attempted usage.")
+            log.debug("Session was not set before attempted usage.")
             return None
 
         try:
@@ -232,7 +232,7 @@ class StatsClient:
 
     async def try_delete(self, url: str, **kwargs) -> Optional[ClientResponse]:
         if not self.session:
-            log.warning("Session was not set before attempted usage.")
+            log.debug("Session was not set before attempted usage.")
             return None
 
         try:
