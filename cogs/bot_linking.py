@@ -13,7 +13,7 @@ BOOSTER_ROLE_ID = int(env["BOOSTER_ROLE_ID"])
 class BotLinking(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.prune_bots.start()
+        self.prune_loop.start()
 
     @commands.group()
     async def link(self, ctx):
