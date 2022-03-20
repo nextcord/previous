@@ -2,6 +2,7 @@ from nextcord.ext import commands
 
 AUTO_THREAD_CHANNEL = 937840096021979236
 
+
 class AutoThread(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
