@@ -1,6 +1,5 @@
-from typing import List, Optional, Tuple
 import re
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from nextcord import Message, Thread
 from nextcord.enums import ButtonStyle
@@ -10,7 +9,7 @@ from nextcord.ext.commands.bot import Bot
 from nextcord.interactions import Interaction
 from nextcord.member import Member
 from nextcord.mentions import AllowedMentions
-from nextcord.ui import button, View
+from nextcord.ui import View, button
 
 from .help import HELP_CHANNEL_ID
 
@@ -104,39 +103,45 @@ class AutoPaste(Cog):
             for attachment in message.attachments:
                 if not attachment.content_type:
                     continue
-                
+
                 content_type = attachment.content_type.split(";")[0].strip()
                 if content_type not in supported_content_types:
                     continue
 
                 file_bytes = await attachment.read()
-                if not bool(file_bytes.decode('utf-8')):
+                if not bool(file_bytes.decode("utf-8")):
                     # file is empty
                     continue
 
-                file_content = str(file_bytes.decode('utf-8'))
+                file_content = str(file_bytes.decode("utf-8"))
                 language = content_type_to_lang.get(content_type, "text")
                 if content_type == "text/plain":
                     # yaml does not have its own type.
                     if attachment.filename.endswith("yaml"):
                         language = "yaml"
-                    elif isinstance(message.channel, Thread) and message.channel.parent_id == HELP_CHANNEL_ID:
+                    elif (
+                        isinstance(message.channel, Thread)
+                        and message.channel.parent_id == HELP_CHANNEL_ID
+                    ):
                         language = "python"
 
-                    
                 url = await self.do_upload(file_content, language)
                 uploaded_files.append((attachment.filename, url))
 
             if len(uploaded_files) == 1:
-                message_content = f"Please avoid files for code. Posted to {uploaded_files[0][1]}"
+                message_content = (
+                    f"Please avoid files for code. Posted to {uploaded_files[0][1]}"
+                )
             else:
-                join_files = "\n".join(f"**{file_name}**:\n{url}" for file_name, url in uploaded_files)
+                join_files = "\n".join(
+                    f"**{file_name}**:\n{url}" for file_name, url in uploaded_files
+                )
                 message_content = f"Please avoid files for code. Posted {len(uploaded_files)} files:\n{join_files}"
-            
-            delete_view.message=await message.reply(
+
+            delete_view.message = await message.reply(
                 message_content,
                 allowed_mentions=AllowedMentions.none(),
-                view=delete_view
+                view=delete_view,
             )
             return
 

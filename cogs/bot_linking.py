@@ -86,7 +86,6 @@ class BotLinking(commands.Cog):
         await self.prune_bots()
         await ctx.send("ok")
 
-
     @tasks.loop(seconds=30)
     async def prune_loop(self):
         await self.prune_bots()
@@ -126,7 +125,9 @@ class BotLinking(commands.Cog):
                             f"Failed to kick {user.mention} (owner not in server)"
                         )
                         continue
-                    await log_channel.send(f"Owner <@{metadata['owner_id']}> not in server, {user.mention} has been kicked.")
+                    await log_channel.send(
+                        f"Owner <@{metadata['owner_id']}> not in server, {user.mention} has been kicked."
+                    )
                 if owner.get_role(BOOSTER_ROLE_ID) is None:
                     # Owner unboosted
                     try:
@@ -141,9 +142,12 @@ class BotLinking(commands.Cog):
                     )
 
                     try:
-                        await owner.send(f"As a result of you unboosting nextcord, your bot {user.mention} has been kicked. Please re-boost to get your bot added back.")
-                    except nextcord.Forbidden: # 400 error lol?
+                        await owner.send(
+                            f"As a result of you unboosting nextcord, your bot {user.mention} has been kicked. Please re-boost to get your bot added back."
+                        )
+                    except nextcord.Forbidden:  # 400 error lol?
                         pass
+
 
 def setup(bot):
     bot.add_cog(BotLinking(bot))

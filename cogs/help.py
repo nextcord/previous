@@ -1,5 +1,6 @@
 from asyncio import TimeoutError
 from datetime import timedelta
+from os import environ as env
 from re import match
 from typing import Dict, Optional
 
@@ -7,7 +8,6 @@ from nextcord import (AllowedMentions, Button, ButtonStyle, ChannelType,
                       Colour, Embed, Forbidden, HTTPException, Interaction,
                       Member, Message, MessageType, Thread, ThreadMember, ui,
                       utils)
-from os import environ as env
 from nextcord.ext import commands, tasks
 
 from .utils.split_txtfile import split_txtfile
@@ -367,7 +367,7 @@ class HelpCog(commands.Cog):
             or ctx.channel.parent_id != HELP_CHANNEL_ID
         ):
             return
-            
+
         thread_author = await get_thread_author(ctx.channel)
         if not (ctx.author.id == thread_author.id or ctx.author.get_role(HELP_MOD_ID)):
             return await ctx.send("You are not allowed to close this thread.")
@@ -390,7 +390,9 @@ class HelpCog(commands.Cog):
             return await ctx.send("This command can only be used in help threads!")
 
         topic = match(NAME_TOPIC_REGEX, ctx.channel.name).group("topic")  # type: ignore
-        first_thread_message = (await ctx.channel.history(limit=1, oldest_first=True).flatten())[0]
+        first_thread_message = (
+            await ctx.channel.history(limit=1, oldest_first=True).flatten()
+        )[0]
         old_author = first_thread_message.mentions[0]
 
         await ctx.channel.edit(name=f"{topic} ({new_author})")
