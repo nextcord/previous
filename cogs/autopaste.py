@@ -1,7 +1,8 @@
+from typing import List, Optional, Tuple
 import re
 from typing import List, Optional
 
-from nextcord import Message
+from nextcord import Message, Thread
 from nextcord.enums import ButtonStyle
 from nextcord.errors import HTTPException, NotFound
 from nextcord.ext.commands import Cog
@@ -9,7 +10,9 @@ from nextcord.ext.commands.bot import Bot
 from nextcord.interactions import Interaction
 from nextcord.member import Member
 from nextcord.mentions import AllowedMentions
-from nextcord.ui import View, button
+from nextcord.ui import button, View
+
+from .help import HELP_CHANNEL_ID
 
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
@@ -76,7 +79,11 @@ class AutoPaste(Cog):
         self.bot: Bot = bot
 
     async def do_upload(self, content: str, language: str) -> str:
-        res = await self.bot.session.post("https://paste.nextcord.dev/api/new", data=str(content))  # type: ignore
+        res = await self.bot.session.post(  # type: ignore
+            url="https://paste.nextcord.dev/api/new",
+            json={"content": str(content), "language": language},
+            headers={"Content-Type": "application/json"},
+        )
         paste_id = (await res.json())["key"]
         return f"https://paste.nextcord.dev/?id={paste_id}&language={language}"
 
@@ -93,27 +100,43 @@ class AutoPaste(Cog):
 
         # Files
         if message.attachments:
-            first_attachment = message.attachments[0]
-            if not first_attachment.content_type:
-                return
+            uploaded_files: List[Tuple[str, str]] = []
+            for attachment in message.attachments:
+                if not attachment.content_type:
+                    continue
+                
+                content_type = attachment.content_type.split(";")[0].strip()
+                if content_type not in supported_content_types:
+                    continue
 
-            content_type = first_attachment.content_type.split(";")[0].strip()
-            if content_type not in supported_content_types:
-                return
+                file_bytes = await attachment.read()
+                if not bool(file_bytes.decode('utf-8')):
+                    # file is empty
+                    continue
 
-            file_bytes = await first_attachment.read()
-            if not bool(file_bytes.decode("utf-8")):
-                # file is empty
-                return
+                file_content = str(file_bytes.decode('utf-8'))
+                language = content_type_to_lang.get(content_type, "text")
+                if content_type == "text/plain":
+                    # yaml does not have its own type.
+                    if attachment.filename.endswith("yaml"):
+                        language = "yaml"
+                    elif isinstance(message.channel, Thread) and message.channel.parent_id == HELP_CHANNEL_ID:
+                        language = "python"
 
-            file_content = str(file_bytes.decode("utf-8"))
-            language = content_type_to_lang.get(content_type, "text")
+                    
+                url = await self.do_upload(file_content, language)
+                uploaded_files.append((attachment.filename, url))
 
-            url = await self.do_upload(file_content, language)
-            delete_view.message = await message.reply(
-                f"Please avoid files for code. Posted to {url}",
+            if len(uploaded_files) == 1:
+                message_content = f"Please avoid files for code. Posted to {uploaded_files[0][1]}"
+            else:
+                join_files = "\n".join(f"**{file_name}**:\n{url}" for file_name, url in uploaded_files)
+                message_content = f"Please avoid files for code. Posted {len(uploaded_files)} files:\n{join_files}"
+            
+            delete_view.message=await message.reply(
+                message_content,
                 allowed_mentions=AllowedMentions.none(),
-                view=delete_view,
+                view=delete_view
             )
             return
 

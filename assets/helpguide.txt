@@ -1,5 +1,7 @@
 :scroll:   **When asking for help, we ask that you please follow these guidelines:**
 
+**Do not ping <@&891630950813925377> in your thread for help. This role is mentionable strictly for moderation incidents. Helpers will be added to the thread automatically.**
+
 **1. Please include your error message!** (if relevant)
 If your question is regarding your code not working, error messages assist the helpers in narrowing down the cause of the issue (what line it's on, what module is causing it, etc.). Not including any errors, tracebacks, etc. can slow things down considerably.
 

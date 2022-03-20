@@ -18,7 +18,7 @@ HELPER_ROLE_ID: int = int(env["HELP_NOTIFICATION_ROLE_ID"])
 HELP_MOD_ID: int = int(env["HELP_MOD_ROLE_ID"])
 GUILD_ID: int = int(env["GUILD_ID"])
 CUSTOM_ID_PREFIX: str = "help:"
-NAME_TOPIC_REGEX: str = r"(^.*?) \((.*?[0-9]{4})\)$"
+NAME_TOPIC_REGEX: str = r"^(?P<topic>.*?) \((?P<author>[^)]*[^(]*)\)$"
 WAIT_FOR_TIMEOUT: int = 1800  # 30 minutes
 
 timeout_message: str = (
@@ -367,17 +367,11 @@ class HelpCog(commands.Cog):
             or ctx.channel.parent_id != HELP_CHANNEL_ID
         ):
             return
-
-        first_thread_message = (
-            await ctx.channel.history(limit=1, oldest_first=True).flatten()
-        )[0]
-        thread_author = first_thread_message.mentions[0]
-        if not (ctx.author.id == thread_author.id or ctx.author.get_role(HELP_MOD_ID)):
-            return await ctx.send(
-                "You are not allowed to change the topic of this thread."
-            )
-
+            
         thread_author = await get_thread_author(ctx.channel)
+        if not (ctx.author.id == thread_author.id or ctx.author.get_role(HELP_MOD_ID)):
+            return await ctx.send("You are not allowed to close this thread.")
+
         await close_help_thread("COMMAND", ctx.channel, thread_author)
 
     @commands.command()
@@ -386,7 +380,7 @@ class HelpCog(commands.Cog):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent.id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
 
-        author = match(NAME_TOPIC_REGEX, ctx.channel.name).group(2)  # type: ignore
+        author = match(NAME_TOPIC_REGEX, ctx.channel.name).group("author")  # type: ignore
         await ctx.channel.edit(name=f"{topic} ({author})")
 
     @commands.command()
@@ -395,10 +389,8 @@ class HelpCog(commands.Cog):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent_id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
 
-        topic = match(NAME_TOPIC_REGEX, ctx.channel.name).group(1)  # type: ignore
-        first_thread_message = (
-            await ctx.channel.history(limit=1, oldest_first=True).flatten()
-        )[0]
+        topic = match(NAME_TOPIC_REGEX, ctx.channel.name).group("topic")  # type: ignore
+        first_thread_message = (await ctx.channel.history(limit=1, oldest_first=True).flatten())[0]
         old_author = first_thread_message.mentions[0]
 
         await ctx.channel.edit(name=f"{topic} ({new_author})")
