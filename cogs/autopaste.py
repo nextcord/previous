@@ -128,22 +128,23 @@ class AutoPaste(Cog):
                 url = await self.do_upload(file_content, language)
                 uploaded_files.append((attachment.filename, url))
 
-            if len(uploaded_files) == 1:
-                message_content = (
-                    f"Please avoid files for code. Posted to {uploaded_files[0][1]}"
-                )
-            else:
-                join_files = "\n".join(
-                    f"**{file_name}**:\n{url}" for file_name, url in uploaded_files
-                )
-                message_content = f"Please avoid files for code. Posted {len(uploaded_files)} files:\n{join_files}"
+            if uploaded_files:
+                if len(uploaded_files) == 1:
+                    message_content = (
+                        f"Please avoid files for code. Posted to {uploaded_files[0][1]}"
+                    )
+                else:
+                    join_files = "\n".join(
+                        f"**{file_name}**:\n{url}" for file_name, url in uploaded_files
+                    )
+                    message_content = f"Please avoid files for code. Posted {len(uploaded_files)} files:\n{join_files}"
 
-            delete_view.message = await message.reply(
-                message_content,
-                allowed_mentions=AllowedMentions.none(),
-                view=delete_view,
-            )
-            return
+                delete_view.message = await message.reply(
+                    message_content,
+                    allowed_mentions=AllowedMentions.none(),
+                    view=delete_view,
+                )
+                return
 
         # Codeblocks
         regex_result = codeblock_regex.search(message.content)
