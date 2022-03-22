@@ -2,7 +2,7 @@ from asyncio import TimeoutError
 from datetime import timedelta
 from os import environ as env
 from re import match
-from typing import Dict, Optional
+from typing import Dict
 
 from nextcord import (AllowedMentions, Button, ButtonStyle, ChannelType,
                       Colour, Embed, Forbidden, HTTPException, Interaction,
