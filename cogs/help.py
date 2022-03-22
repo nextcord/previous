@@ -191,13 +191,6 @@ class HelpView(ui.View):
         )
         self.add_item(HelpButton("Python", style=ButtonStyle.green, custom_id="python"))
 
-    async def interaction_check(self, interaction: Interaction) -> bool:
-        if interaction.user.timeout is not None:
-            await interaction.send(timeout_message, ephemeral=True)
-            return False
-
-        return await super().interaction_check(interaction)
-
 
 class ConfirmButton(ui.Button["ConfirmView"]):
     def __init__(self, label: str, style: ButtonStyle, *, custom_id: str):
@@ -245,12 +238,6 @@ class ThreadCloseView(ui.View):
         if interaction.channel.archived or interaction.channel.locked:  # type: ignore
             return False
 
-        if (
-            isinstance(interaction.user, Member)
-            and interaction.user.timeout is not None
-        ):
-            await interaction.send(timeout_message, ephemeral=True)
-            return False
 
         thread_author = await get_thread_author(interaction.channel)  # type: ignore
         if interaction.user.id == thread_author.id or interaction.user.get_role(HELP_MOD_ID):  # type: ignore
