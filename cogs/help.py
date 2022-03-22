@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 from asyncio import TimeoutError
 from datetime import timedelta
 from re import match
