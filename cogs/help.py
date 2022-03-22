@@ -21,9 +21,6 @@ CUSTOM_ID_PREFIX: str = "help:"
 NAME_TOPIC_REGEX: str = r"^(?P<topic>.*?) \((?P<author>[^)]*[^(]*)\)$"
 WAIT_FOR_TIMEOUT: int = 1800  # 30 minutes
 
-timeout_message: str = (
-    "You are currently timed out, please wait until it ends before trying again"
-)
 closing_message = (
     "If your question has not been answered or your issue not "
     "resolved, we suggest taking a look at [Python Discord's Guide to "
