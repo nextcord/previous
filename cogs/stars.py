@@ -3,6 +3,7 @@ from nextcord import TextChannel
 from nextcord.ext import commands
 from nextcord.ext.tasks import loop
 
+
 STARS_CHANNEL_ID: int = 884441198520045570
 
 class GitHubStars(commands.Cog):
@@ -17,7 +18,7 @@ class GitHubStars(commands.Cog):
         """Get number of GitHub stars for a given repo in the form 'owner/repository'"""
         async with ClientSession() as session:
             async with session.get(f"https://api.github.com/repos/{repo}") as resp:
-                data = await resp.json()
+                data: dict = await resp.json()
                 return int(data["stargazers_count"])
 
     @loop(minutes=30)
