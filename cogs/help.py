@@ -2,7 +2,7 @@ from asyncio import TimeoutError
 from datetime import timedelta
 from os import environ as env
 from re import match
-from typing import Dict, Optional
+from typing import Dict
 
 from nextcord import (AllowedMentions, Button, ButtonStyle, ChannelType,
                       Colour, Embed, Forbidden, HTTPException, Interaction,
@@ -21,9 +21,6 @@ CUSTOM_ID_PREFIX: str = "help:"
 NAME_TOPIC_REGEX: str = r"^(?P<topic>.*?) \((?P<author>[^)]*[^(]*)\)$"
 WAIT_FOR_TIMEOUT: int = 1800  # 30 minutes
 
-timeout_message: str = (
-    "You are currently timed out, please wait until it ends before trying again"
-)
 closing_message = (
     "If your question has not been answered or your issue not "
     "resolved, we suggest taking a look at [Python Discord's Guide to "
@@ -191,13 +188,6 @@ class HelpView(ui.View):
         )
         self.add_item(HelpButton("Python", style=ButtonStyle.green, custom_id="python"))
 
-    async def interaction_check(self, interaction: Interaction) -> bool:
-        if interaction.user.timeout is not None:
-            await interaction.send(timeout_message, ephemeral=True)
-            return False
-
-        return await super().interaction_check(interaction)
-
 
 class ConfirmButton(ui.Button["ConfirmView"]):
     def __init__(self, label: str, style: ButtonStyle, *, custom_id: str):
@@ -245,12 +235,6 @@ class ThreadCloseView(ui.View):
         if interaction.channel.archived or interaction.channel.locked:  # type: ignore
             return False
 
-        if (
-            isinstance(interaction.user, Member)
-            and interaction.user.timeout is not None
-        ):
-            await interaction.send(timeout_message, ephemeral=True)
-            return False
 
         thread_author = await get_thread_author(interaction.channel)  # type: ignore
         if interaction.user.id == thread_author.id or interaction.user.get_role(HELP_MOD_ID):  # type: ignore
