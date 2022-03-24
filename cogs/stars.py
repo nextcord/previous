@@ -3,13 +3,13 @@ from nextcord.ext import commands
 from nextcord.ext.tasks import loop
 
 
-STARS_CHANNEL_ID = 884441198520045570
-
 class GitHubStars(commands.Cog):
     """Run a task loop to update a channel with the current stars for nextcord/nextcord and nextcord/nextcord-v3"""
 
+    STARS_CHANNEL_ID = 884441198520045570
+
     def __init__(self, bot: commands.Bot):
-        self.bot = bot
+        self.__bot = bot
         self.update_stars.start()
 
 
