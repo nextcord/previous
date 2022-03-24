@@ -4,13 +4,13 @@ from nextcord.ext import commands
 from nextcord.ext.tasks import loop
 
 
-STARS_CHANNEL_ID: int = 884441198520045570
+STARS_CHANNEL_ID = 884441198520045570
 
 class GitHubStars(commands.Cog):
     """Run a task loop to update a channel with the current stars for nextcord/nextcord and nextcord/nextcord-v3"""
 
     def __init__(self, bot: commands.Bot):
-        self.bot: commands.Bot = bot
+        self.bot = bot
         self.update_stars.start()
 
 
@@ -24,9 +24,9 @@ class GitHubStars(commands.Cog):
     @loop(minutes=30)
     async def update_stars(self):
         """Loop to check and update stars"""
-        nextcord_stars: int = await self.get_stars("nextcord/nextcord")
-        nextcord_v3_stars: int = await self.get_stars("nextcord/nextcord-v3")
-        channel_name: str = f"v2 {nextcord_stars}🌟| v3 {nextcord_v3_stars}🌟"
+        nextcord_stars = await self.get_stars("nextcord/nextcord")
+        nextcord_v3_stars = await self.get_stars("nextcord/nextcord-v3")
+        channel_name = f"v2 {nextcord_stars}🌟| v3 {nextcord_v3_stars}🌟"
 
         # update channel name if it has changed
         if self.__channel.name != channel_name:
@@ -36,11 +36,11 @@ class GitHubStars(commands.Cog):
     async def before_update_stars(self):
         """Before the loop starts, get the channel"""
         await self.__bot.wait_until_ready()
-        self.__channel: TextChannel = self.__bot.get_channel(self.STARS_CHANNEL_ID)
+        self.__channel = self.__bot.get_channel(self.STARS_CHANNEL_ID)
 
     def cog_unload(self):
         self.update_stars.cancel()
 
 
-def setup(bot: commands.Cog):
+def setup(bot: commands.Bot):
     bot.add_cog(GitHubStars(bot))
