@@ -26,19 +26,13 @@ class BotLinking(commands.Cog):
         self,
         ctx,
         status: Literal["booster", "admin", "special"],
-        bot: nextcord.Member,
-        owner: nextcord.Member,
+        bot: nextcord.User,
+        owner: nextcord.User,
     ):
         db = self.bot.get_cog("Database")
 
         if not bot.bot or owner.bot:
             await ctx.send("You fucked up the order. Good job.")
-            return
-
-        current = await db.get(f"bots/{bot.id}")
-
-        if current:
-            await ctx.send(f"This bot is already linked to <@{current['owner_id']}>.")
             return
 
         await db.set(f"bots/{bot.id}", {"owner_id": owner.id, "status": status})
@@ -47,7 +41,7 @@ class BotLinking(commands.Cog):
 
     @link.command()
     @commands.has_permissions(administrator=True)
-    async def remove(self, ctx, bot: nextcord.Member):
+    async def remove(self, ctx, bot: nextcord.Object):
         db = self.bot.get_cog("Database")
 
         current = await db.get(f"bots/{bot.id}")
@@ -57,7 +51,6 @@ class BotLinking(commands.Cog):
             return
 
         await db.delete(f"bots/{bot.id}")
-        await bot.kick(reason="Bot unlinked!")
 
         await ctx.send(f"Successfully unlinked <@{bot.id}>.")
 
