@@ -9,10 +9,10 @@ class AutoThread(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.bot: # return if the author of the message is a bot.
+    async def on_message(self, message: Message):
+        if message.author.bot:
             return
-        if message.channel.id == AUTO_THREAD_CHANNEL: # check if the message channel is the one we want to auto threads.
+        if message.channel.id == AUTO_THREAD_CHANNEL:
             await message.create_thread(name="Discussion")
 
 
