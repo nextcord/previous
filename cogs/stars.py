@@ -1,5 +1,4 @@
 from aiohttp import ClientSession
-from nextcord import TextChannel
 from nextcord.ext import commands
 from nextcord.ext.tasks import loop
 
@@ -18,7 +17,7 @@ class GitHubStars(commands.Cog):
         """Get number of GitHub stars for a given repo in the form 'owner/repository'"""
         async with ClientSession() as session:
             async with session.get(f"https://api.github.com/repos/{repo}") as resp:
-                data: dict = await resp.json()
+                data = await resp.json()
                 return int(data["stargazers_count"])
 
     @loop(minutes=30)
