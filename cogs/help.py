@@ -5,10 +5,10 @@ from re import match
 from typing import Dict, Union
 
 from nextcord import (
-    AllowedMentions,
     Button,
     ButtonStyle,
     ChannelType,
+    ClientUser,
     Colour,
     Embed,
     Forbidden,
