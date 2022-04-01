@@ -107,6 +107,7 @@ class BotLinking(commands.Cog):
                 await log_channel.send(
                     f"Unlinked bot {user.mention} found, bot has been kicked. Please use previous' link command."
                 )
+                continue
             if metadata["status"] == "booster":
                 owner = guild.get_member(metadata["owner_id"])
                 if owner is None:
@@ -121,6 +122,7 @@ class BotLinking(commands.Cog):
                     await log_channel.send(
                         f"Owner <@{metadata['owner_id']}> not in server, {user.mention} has been kicked."
                     )
+                    continue
                 if owner.get_role(BOOSTER_ROLE_ID) is None:
                     # Owner unboosted
                     try:
