@@ -1,6 +1,7 @@
 import nextcord
-from nextcord.ext import commands
 from algoliasearch.search_client import SearchClient
+from nextcord.ext import commands
+
 
 class DiscordHelp(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -9,7 +10,8 @@ class DiscordHelp(commands.Cog):
         app_id = "BH4D9OD16A"
         api_key = "f37d91bd900bbb124c8210cca9efcc01"
         self.search_client = SearchClient.create(app_id, api_key)
-        self.index = self.search_client.init_index('discord')
+        self.index = self.search_client.init_index("discord")
+
     @commands.command(help="discord api docs")
     async def ddoc(self, ctx, *, search_term):
         results = await self.index.search_async(search_term)
@@ -20,11 +22,17 @@ class DiscordHelp(commands.Cog):
             if title in hits:
                 continue
             hits.append(title)
-            url = hit["url"].replace("https://discord.com/developers/docs", "https://discord.dev")
+            url = hit["url"].replace(
+                "https://discord.com/developers/docs", "https://discord.dev"
+            )
             description += f"[{title}]({url})\n"
             if len(hits) == 10:
                 break
-        embed = nextcord.Embed(title="Your help has arrived!", description=description, color=nextcord.Color.random())
+        embed = nextcord.Embed(
+            title="Your help has arrived!",
+            description=description,
+            color=nextcord.Color.random(),
+        )
         await ctx.send(embed=embed)
 
     def get_level_str(self, levels):
