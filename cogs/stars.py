@@ -1,4 +1,5 @@
 import aiohttp
+from os import environ as env
 from nextcord.ext import commands
 from nextcord.ext.tasks import loop
 
@@ -6,12 +7,11 @@ from nextcord.ext.tasks import loop
 class GitHubStars(commands.Cog):
     """Run a task loop to update a channel with the current stars for nextcord/nextcord and nextcord/nextcord-v3"""
 
-    STARS_CHANNEL_ID = 884441198520045570
+    STARS_CHANNEL_ID = int(env["STARS_CHANNEL_ID"])
 
     def __init__(self, bot: commands.Bot):
         self.__bot = bot
         self.update_stars.start()
-
 
     async def get_stars(self, repo: str) -> int:
         """Get number of GitHub stars for a given repo in the form 'owner/repository'"""
