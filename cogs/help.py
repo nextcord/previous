@@ -70,6 +70,7 @@ async def close_help_thread(
         _last_msg = thread_channel.get_partial_message(thread_channel.last_message_id)
 
     thread_jump_url = _last_msg.jump_url
+    topic = match(NAME_TOPIC_REGEX, thread_channel.name).group("topic")  # type: ignore
 
     embed_reply = Embed(
         title="This thread has now been closed",
@@ -94,7 +95,7 @@ async def close_help_thread(
     # Make some slight changes to the previous thread-closer embed
     # to send to the user via DM.
     embed_reply.title = "Your help thread in the Nextcord server has been closed."
-    embed_reply.description += f"\n\nYou can use [**this link**]({thread_jump_url}) to access the archived thread for future reference"
+    embed_reply.description += f"\n\nTopic: **{topic}**\n\nYou can use [**this link**]({thread_jump_url}) to access the archived thread for future reference."
     if thread_channel.guild.icon:
         embed_reply.set_thumbnail(url=thread_channel.guild.icon.url)
     try:
