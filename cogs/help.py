@@ -83,15 +83,18 @@ async def close_help_thread(
     )  # Send the closing message to the help thread
     await thread_channel.edit(locked=True, archived=True)  # Lock thread
     # Send log
-    await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-        embed=Embed(
-            title=":x: Closed help thread",
-            description=(
-                f"{thread_channel.mention}\n\nHelp thread created by {thread_author.mention} has been closed by {closed_by.mention} "
-                f"using **{method}**."
-            ),
-        )
+    embed_log = Embed(
+        title=":x: Closed help thread",
+        url=thread_channel.jump_url,
+        description=(
+            f"{thread_channel.mention}\n\nHelp thread created by {thread_author.mention} has been closed by {closed_by.mention} "
+            f"using **{method}**.\n\n"
+            f"Thread author: `{thread_author} ({thread_author.id})`\n"
+            f"Closed by: `{closed_by} ({closed_by.id})`"
+        ),
+        colour=0xDD2E44,  # Red
     )
+    await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(embed=embed_log)
     # Make some slight changes to the previous thread-closer embed
     # to send to the user via DM.
     embed_reply.title = "Your help thread in the Nextcord server has been closed."
@@ -120,12 +123,17 @@ class HelpButton(ui.Button["HelpView"]):
         )
 
         # Send log
-        await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-            embed=Embed(
-                title=":white_check_mark: Help thread created",
-                description=f"{thread.mention}\n\nHelp thread for **{self._help_type}** created by {interaction.user.mention}!",
-            )
+        embed_log = Embed(
+            title=":white_check_mark: Help thread created",
+            url=thread.jump_url,
+            description=(
+                f"{thread.mention}\n\n"
+                f"Help thread for **{self._help_type}** created by {interaction.user.mention}!\n\n"
+                f"Created by: `{interaction.user} ({interaction.user.id})`"
+            ),
+            colour=0x77B255,  # Green
         )
+        await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(embed=embed_log)
 
         type_to_colour: Dict[str, Colour] = {
             "Nextcord": Colour.blurple(),
@@ -418,15 +426,19 @@ class HelpCog(commands.Cog):
         await ctx.channel.edit(name=f"{topic} ({new_author})")
         await first_thread_message.edit(content=new_author.mention)
         # Send log
-        await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-            embed=Embed(
-                title=":arrow_right: Help thread transferred",
-                description=(
-                    f"{ctx.channel.mention}\n\nHelp thread created by {old_author.mention} "
-                    f"has been transferred to {new_author.mention} by {ctx.author.mention}."
-                ),
-            )
+        embed_log = Embed(
+            title=":arrow_right: Help thread transferred",
+            url=ctx.channel.jump_url,
+            description=(
+                f"{ctx.channel.mention}\n\nHelp thread created by {old_author.mention} "
+                f"has been transferred to {new_author.mention} by {ctx.author.mention}.\n\n"
+                f"Thread author: `{old_author} ({old_author.id})`\n"
+                f"New author: `{new_author} ({new_author.id})`\n"
+                f"Transferred by: `{ctx.author} ({ctx.author.id})`"
+            ),
+            colour=0x3B88C3,  # Blue
         )
+        await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(embed=embed_log)
 
 
 def setup(bot):
