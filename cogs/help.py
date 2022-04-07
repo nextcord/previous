@@ -2,12 +2,26 @@ from asyncio import TimeoutError
 from datetime import timedelta
 from os import environ as env
 from re import match
-from typing import Dict
+from typing import Dict, Union
 
-from nextcord import (AllowedMentions, Button, ButtonStyle, ChannelType,
-                      Colour, Embed, Forbidden, HTTPException, Interaction,
-                      Member, Message, MessageType, Thread, ThreadMember, ui,
-                      utils)
+from nextcord import (
+    Button,
+    ButtonStyle,
+    ChannelType,
+    ClientUser,
+    Colour,
+    Embed,
+    Forbidden,
+    HTTPException,
+    Interaction,
+    Member,
+    Message,
+    MessageType,
+    Thread,
+    ThreadMember,
+    ui,
+    utils,
+)
 from nextcord.ext import commands, tasks
 
 from .utils.split_txtfile import split_txtfile
@@ -36,7 +50,12 @@ async def get_thread_author(channel: Thread) -> Member:
     return user
 
 
-async def close_help_thread(method: str, thread_channel, thread_author):
+async def close_help_thread(
+    method: str,
+    thread_channel: Thread,
+    thread_author: Member,
+    closed_by: Union[Member, ClientUser],
+):
     """Closes a help thread. Is called from either the close button or the
     =close command.
     """
@@ -51,6 +70,7 @@ async def close_help_thread(method: str, thread_channel, thread_author):
         _last_msg = thread_channel.get_partial_message(thread_channel.last_message_id)
 
     thread_jump_url = _last_msg.jump_url
+    topic = match(NAME_TOPIC_REGEX, thread_channel.name).group("topic")  # type: ignore
 
     embed_reply = Embed(
         title="This thread has now been closed",
@@ -62,13 +82,23 @@ async def close_help_thread(method: str, thread_channel, thread_author):
         embed=embed_reply
     )  # Send the closing message to the help thread
     await thread_channel.edit(locked=True, archived=True)  # Lock thread
-    await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
-        content=f"Help thread {thread_channel.name} (created by {thread_author.name}) has been closed."
+    # Send log
+    embed_log = Embed(
+        title=":x: Closed help thread",
+        url=thread_channel.jump_url,
+        description=(
+            f"{thread_channel.mention}\n\nHelp thread created by {thread_author.mention} has been closed by {closed_by.mention} "
+            f"using **{method}**.\n\n"
+            f"Thread author: `{thread_author} ({thread_author.id})`\n"
+            f"Closed by: `{closed_by} ({closed_by.id})`"
+        ),
+        colour=0xDD2E44,  # Red
     )
+    await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(embed=embed_log)
     # Make some slight changes to the previous thread-closer embed
     # to send to the user via DM.
     embed_reply.title = "Your help thread in the Nextcord server has been closed."
-    embed_reply.description += f"\n\nYou can use [**this link**]({thread_jump_url}) to access the archived thread for future reference"
+    embed_reply.description += f"\n\nTopic: **{topic}**\n\nYou can use [**this link**]({thread_jump_url}) to access the archived thread for future reference."
     if thread_channel.guild.icon:
         embed_reply.set_thumbnail(url=thread_channel.guild.icon.url)
     try:
@@ -92,10 +122,18 @@ class HelpButton(ui.Button["HelpView"]):
             type=ChannelType.public_thread,
         )
 
-        await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(
-            content=f"Help thread for {self._help_type} created by {interaction.user.mention}: {thread.mention}!",
-            allowed_mentions=AllowedMentions(users=False),
+        # Send log
+        embed_log = Embed(
+            title=":white_check_mark: Help thread created",
+            url=thread.jump_url,
+            description=(
+                f"{thread.mention}\n\n"
+                f"Help thread for **{self._help_type}** created by {interaction.user.mention}!\n\n"
+                f"Created by: `{interaction.user} ({interaction.user.id})`"
+            ),
+            colour=0x77B255,  # Green
         )
+        await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(embed=embed_log)
 
         type_to_colour: Dict[str, Colour] = {
             "Nextcord": Colour.blurple(),
@@ -140,7 +178,10 @@ class HelpButton(ui.Button["HelpView"]):
             )
         except TimeoutError:
             await close_help_thread(
-                "TIMEOUT [launch_wait_for_message]", thread, interaction.user
+                "TIMEOUT [launch_wait_for_message]",
+                thread,
+                interaction.user,
+                self.view.bot.user,
             )
             return
         else:
@@ -221,7 +262,9 @@ class ThreadCloseView(ui.View):
         button.disabled = True
         await interaction.response.edit_message(view=self)
         thread_author = await get_thread_author(interaction.channel)  # type: ignore
-        await close_help_thread("BUTTON", interaction.channel, thread_author)
+        await close_help_thread(
+            "BUTTON", interaction.channel, thread_author, interaction.user
+        )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
 
@@ -235,7 +278,6 @@ class ThreadCloseView(ui.View):
         if interaction.channel.archived or interaction.channel.locked:  # type: ignore
             return False
 
-
         thread_author = await get_thread_author(interaction.channel)  # type: ignore
         if interaction.user.id == thread_author.id or interaction.user.get_role(HELP_MOD_ID):  # type: ignore
             return True
@@ -247,7 +289,7 @@ class ThreadCloseView(ui.View):
 
 
 class HelpCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.close_empty_threads.start()
         self.bot.loop.create_task(self.create_views())
@@ -282,7 +324,9 @@ class HelpCog(commands.Cog):
         if member.id != thread_author.id:
             return
 
-        await close_help_thread("EVENT", thread, thread_author)
+        await close_help_thread(
+            "EVENT [thread_member_remove]", thread, thread_author, self.bot.user
+        )
 
     @tasks.loop(hours=24)
     async def close_empty_threads(self):
@@ -329,7 +373,7 @@ class HelpCog(commands.Cog):
                     continue
             else:
                 await close_help_thread(
-                    "TASK [close_empty_threads]", thread, thread_author
+                    "TASK [close_empty_threads]", thread, thread_author, self.bot.user
                 )
                 continue
 
@@ -356,7 +400,7 @@ class HelpCog(commands.Cog):
         if not (ctx.author.id == thread_author.id or ctx.author.get_role(HELP_MOD_ID)):
             return await ctx.send("You are not allowed to close this thread.")
 
-        await close_help_thread("COMMAND", ctx.channel, thread_author)
+        await close_help_thread("COMMAND", ctx.channel, thread_author, ctx.author)
 
     @commands.command()
     @commands.has_role(HELP_MOD_ID)
@@ -381,10 +425,20 @@ class HelpCog(commands.Cog):
 
         await ctx.channel.edit(name=f"{topic} ({new_author})")
         await first_thread_message.edit(content=new_author.mention)
-        await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(  # Send log
-            content=f"Help thread {ctx.channel.mention} (created by {old_author.mention}) "
-            f"has been transferred to {new_author.mention} by {ctx.author.mention}.",
+        # Send log
+        embed_log = Embed(
+            title=":arrow_right: Help thread transferred",
+            url=ctx.channel.jump_url,
+            description=(
+                f"{ctx.channel.mention}\n\nHelp thread created by {old_author.mention} "
+                f"has been transferred to {new_author.mention} by {ctx.author.mention}.\n\n"
+                f"Thread author: `{old_author} ({old_author.id})`\n"
+                f"New author: `{new_author} ({new_author.id})`\n"
+                f"Transferred by: `{ctx.author} ({ctx.author.id})`"
+            ),
+            colour=0x3B88C3,  # Blue
         )
+        await ctx.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(embed=embed_log)
 
 
 def setup(bot):
