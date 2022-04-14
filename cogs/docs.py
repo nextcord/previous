@@ -487,7 +487,7 @@ class Docs(commands.Cog):
 
     async def do_docs(self, ctx, key, obj):
         page_types = {
-            "master": "https://docs.nextcord.dev/en/latest",
+            "master": "https://docs.nextcord.dev/en/stable",
             "menus": "https://nextcord-ext-menus.readthedocs.io/en/latest",
             "ipc": "https://nextcord-ext-ipc.readthedocs.io/en/latest",
             "python": "https://docs.python.org/3",
