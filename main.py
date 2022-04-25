@@ -32,6 +32,8 @@ async def on_command_error(ctx, error):
     # kinda annoying and useless error.
     elif isinstance(error, nextcord.NotFound) and "Unknown interaction" in str(error):
         return
+    elif isinstance(error, errors.NotOwner):
+        return
     else:
         await ctx.send(
             f"This command raised an exception: `{type(error)}:{str(error)}`"
