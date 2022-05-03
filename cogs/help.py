@@ -232,8 +232,9 @@ class HelpView(ui.View):
     
     async def interaction_check(self, interaction: Interaction):
         if interaction.user.get_role(883649900913512508) is not None:
-            await interaction.send(NO_HELP_MESSAGE)
+            await interaction.send(NO_HELP_MESSAGE, ephemeral=True)
             return False
+
         return await super().interaction_check(interaction)
 
 
