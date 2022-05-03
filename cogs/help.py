@@ -235,7 +235,7 @@ class HelpView(ui.View):
             await interaction.send(NO_HELP_MESSAGE, ephemeral=True)
             return False
 
-        return await super().interaction_check(interaction)
+        return True
 
 
 class ConfirmButton(ui.Button["ConfirmView"]):
