@@ -30,6 +30,7 @@ HELP_CHANNEL_ID: int = int(env["HELP_CHANNEL_ID"])
 HELP_LOGS_CHANNEL_ID: int = int(env["HELP_LOG_CHANNEL_ID"])
 HELPER_ROLE_ID: int = int(env["HELP_NOTIFICATION_ROLE_ID"])
 HELP_MOD_ID: int = int(env["HELP_MOD_ROLE_ID"])
+NO_HELP_ID: int = int(env["NO_HELP_ROLE_ID"])
 GUILD_ID: int = int(env["GUILD_ID"])
 CUSTOM_ID_PREFIX: str = "help:"
 NAME_TOPIC_REGEX: str = r"^(?P<topic>.*?) \((?P<author>[^)]*[^(]*)\)$"
@@ -231,7 +232,7 @@ class HelpView(ui.View):
         self.add_item(HelpButton("Python", style=ButtonStyle.green, custom_id="python"))
     
     async def interaction_check(self, interaction: Interaction):
-        if interaction.user.get_role(883649900913512508) is not None:
+        if interaction.user.get_role(NO_HELP_ID) is not None:
             await interaction.send(NO_HELP_MESSAGE, ephemeral=True)
             return False
 
