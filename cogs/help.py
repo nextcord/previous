@@ -228,6 +228,12 @@ class HelpView(ui.View):
             HelpButton("Nextcord", style=ButtonStyle.blurple, custom_id="nextcord")
         )
         self.add_item(HelpButton("Python", style=ButtonStyle.green, custom_id="python"))
+    
+    async def interaction_check(self, interaction: Interaction):
+        if interaction.user.get_role(883649900913512508) is not None:
+            await interaction.send("You are banned from creating help threads.")
+            return False
+        return True
 
 
 class ConfirmButton(ui.Button["ConfirmView"]):
