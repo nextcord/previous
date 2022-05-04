@@ -31,6 +31,7 @@ HELP_LOGS_CHANNEL_ID: int = int(env["HELP_LOG_CHANNEL_ID"])
 HELPER_ROLE_ID: int = int(env["HELP_NOTIFICATION_ROLE_ID"])
 HELP_MOD_ID: int = int(env["HELP_MOD_ROLE_ID"])
 GUILD_ID: int = int(env["GUILD_ID"])
+SERVER_MOD_ID: int = int(env["SERVER_MOD_ROLE_ID"])
 CUSTOM_ID_PREFIX: str = "help:"
 NAME_TOPIC_REGEX: str = r"^(?P<topic>.*?) \((?P<author>[^)]*[^(]*)\)$"
 WAIT_FOR_TIMEOUT: int = 1800  # 30 minutes
@@ -403,7 +404,7 @@ class HelpCog(commands.Cog):
         await close_help_thread("COMMAND", ctx.channel, thread_author, ctx.author)
 
     @commands.command()
-    @commands.has_role(HELP_MOD_ID)
+    @commands.has_any_role(HELP_MOD_ID, SERVER_MOD_ID)
     async def topic(self, ctx, *, topic: str):
         if not (isinstance(ctx.channel, Thread) and ctx.channel.parent.id == HELP_CHANNEL_ID):  # type: ignore
             return await ctx.send("This command can only be used in help threads!")
