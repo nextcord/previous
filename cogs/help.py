@@ -35,7 +35,7 @@ GUILD_ID: int = int(env["GUILD_ID"])
 CUSTOM_ID_PREFIX: str = "help:"
 NAME_TOPIC_REGEX: str = r"^(?P<topic>.*?) \((?P<author>[^)]*[^(]*)\)$"
 WAIT_FOR_TIMEOUT: int = 1800  # 30 minutes
-NO_HELP_MESSAGE: str = "You are banned from creating help threads."
+NO_HELP_MESSAGE: str = "You are banned from creating help threads. DM Modmail if you want to appeal it."
 
 closing_message = (
     "If your question has not been answered or your issue not "
