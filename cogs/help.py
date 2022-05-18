@@ -34,6 +34,14 @@ GUILD_ID: int = int(env["GUILD_ID"])
 CUSTOM_ID_PREFIX: str = "help:"
 NAME_TOPIC_REGEX: str = r"^(?P<topic>.*?) \((?P<author>[^)]*[^(]*)\)$"
 WAIT_FOR_TIMEOUT: int = 1800  # 30 minutes
+HELP_TOPIC_EMOJIS = {
+    "🐛": ("but report", "When there is a bug reported for Nextcord."),
+     "🔥": ("active", "When the thread is activily being used."),
+    "⏳":("stalled", "When response from the author is being awaited."),
+    "🤚": ("help needed", "When the author needs help."),
+     "📌":("pinned", "When the thread should stay open for a while."),
+    "⚠️": ("tos", "When something against the Terms of Service is being discussed."),	
+}
 
 closing_message = (
     "If your question has not been answered or your issue not "
@@ -287,6 +295,37 @@ class ThreadCloseView(ui.View):
             )
             return False
 
+class TopicEmojiSelectorView(ui.View):
+    def __init__(self, command_author_id: int):
+        self.command_author_id = command_author_id
+        super().__init__(timeout=WAIT_FOR_TIMEOUT)
+        self.value = None
+        self.add_item(TopicEmojiSelector())
+
+    async def on_timeout(self) -> None:
+        await self.message.delete()  # type: ignore
+      
+    async def interaction_check(self, interaction: Interaction) -> bool:
+        return interaction.user.id == self.command_author_id  # type: ignore
+class TopicEmojiSelector(ui.Select):
+    def __init__(self):
+        super().__init__(
+            custom_id="topic_emoji_selector",
+            placeholder="Select a topic emoji",
+            min_values=1
+        )
+        for emoji, (label, description) in HELP_TOPIC_EMOJIS.items():
+            self.add_option(
+                emoji=emoji,
+                value=emoji,
+                label=label.title(),
+                description=description,
+                default=label=="help needed",
+            )
+
+    async def callback(self, _: Interaction):
+        self.view.value = self.values[0].value  # type: ignore
+        await self.message.edit(content=f"Selected {self.values[0].value}", view=None, delete_after=5)  # type: ignore
 
 class HelpCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -409,7 +448,16 @@ class HelpCog(commands.Cog):
             return await ctx.send("This command can only be used in help threads!")
 
         author = match(NAME_TOPIC_REGEX, ctx.channel.name).group("author")  # type: ignore
-        await ctx.channel.edit(name=f"{topic} ({author})")
+        topic_view = TopicEmojiSelectorView(ctx.author.id)
+        topic_view.message = await ctx.send(  # type: ignore
+            f"Select a topic emoji, {ctx.author.id}!",
+            view=topic_view
+        )
+        await topic_view.wait()
+        if not topic_view.value:
+            return
+        topic_emoji = topic_view.value  # type: ignore
+        await ctx.channel.edit(name=f"{topic_emoji} {topic} ({author})")
 
     @commands.command()
     @commands.has_role(HELP_MOD_ID)
