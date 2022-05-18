@@ -1,7 +1,8 @@
+from os import environ as env
 from nextcord.ext import commands
 from nextcord import Message
 
-AUTO_THREAD_CHANNEL = 937840096021979236
+AUTO_THREAD_CHANNEL_ID = int(env["AUTO_THREAD_CHANNEL_ID"])
 
 
 class AutoThread(commands.Cog):
@@ -12,7 +13,7 @@ class AutoThread(commands.Cog):
     async def on_message(self, message: Message):
         if message.author.bot:
             return
-        if message.channel.id == AUTO_THREAD_CHANNEL:
+        if message.channel.id == AUTO_THREAD_CHANNEL_ID:
             await message.create_thread(name="Discussion")
 
 
