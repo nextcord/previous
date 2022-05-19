@@ -24,9 +24,9 @@ The bot managing the Official [Nextcord Discord Server][NEXTCORDSERVER].
     (Source: [cogs/help.py][HELPPY]))	
 
 - **Others:**
-    - Database: simple powered by [consul.io][CONSUL]
+    - Database: simple database powered by [consul.io][CONSUL]
     (Source: [cogs/database.py][DATABASEPY])
-    - Bot linking: stores whose and which bots are added in the nextcord server by boosting.
+    - Bot linking: stores which users bot are added to the nextcord server by boosting.
     (Source: [cogs/botlink.py][BOTLINKPY])
     - Charinfo: Command to get information about a (unicode) character.
     (Source: [cogs/etc.py][ETCPY])
