@@ -4,7 +4,7 @@ The bot managing the Official [Nextcord Discord Server][NEXTCORDSERVER].
 # Features
 
 - **Autopaste:**
-    Automatically paste the contents of a file or codeblock to [our paste service][PASTESERVICE] \
+    Automatically paste the contents of a file or codeblock to [our paste service][PASTESERVICE]. \
     (Source: [cogs/autopaste.py][AUTOPASTEPY])
 
 - **Auto thread:**
@@ -20,15 +20,15 @@ The bot managing the Official [Nextcord Discord Server][NEXTCORDSERVER].
     (Source: [cogs/discorddoc.py ][DDOCSPY] (Discord) | [cogs/docs.py][DOCSPY] (Python & Nextcord))
 
 - **Help System:**
-    An help system using buttons for the nextcord server. \
+    An help system using buttons for the [Nextcord server][NEXTCORDSERVER]. \
     (Source: [cogs/help.py][HELPPY]))	
 
 - **Others:**
-    - Database: simple database powered by [consul.io][CONSUL]
+    - Database: simple database powered by [consul.io][CONSUL].
     (Source: [cogs/database.py][DATABASEPY])
     - Bot linking: stores which users bot are added to the nextcord server by boosting.
     (Source: [cogs/botlink.py][BOTLINKPY])
-    - Charinfo: Command to get information about a (unicode) character.
+    - Charinfo: command to get information about a (unicode) character.
     (Source: [cogs/etc.py][ETCPY])
 
 # Running the bot
