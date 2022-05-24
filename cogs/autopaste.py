@@ -84,7 +84,7 @@ class AutoPaste(Cog):
             headers={"Content-Type": "application/json"},
         )
         paste_id = (await res.json())["key"]
-        return f"https://paste.nextcord.dev/?id={paste_id}&language={language}"
+        return f"<https://paste.nextcord.dev/?id={paste_id}&language={language}>"
 
     @Cog.listener()
     async def on_message(self, message: Message):
@@ -153,7 +153,7 @@ class AutoPaste(Cog):
             for paste_service in other_paste_services:
                 if paste_service in message.content:
                     delete_view.message = await message.reply(
-                        "Please avoid other paste services than https://paste.nextcord.dev.",
+                        "Please avoid other paste services than <https://paste.nextcord.dev>.",
                         view=delete_view,
                     )
                     return
