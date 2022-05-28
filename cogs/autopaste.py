@@ -11,7 +11,7 @@ from nextcord.member import Member
 from nextcord.mentions import AllowedMentions
 from nextcord.ui import View, button
 
-from .help import HELP_CHANNEL_ID
+from .help import HELP_CHANNEL_ID, HELP_MOD_ID, get_thread_author
 
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
@@ -64,11 +64,17 @@ class DeleteMessage(View):
             await self.on_timeout()
             return False
 
-        if (
-            interaction.user.id == self.message_author.id
-            or interaction.channel.permissions_for(interaction.user).manage_messages
-        ):  # type: ignore
-            return True
+        if isinstance(interaction.channel, Thread) and interaction.channel.parent_id == HELP_CHANNEL_ID:
+            if interaction.user.get_role(HELP_MOD_ID):
+                return True
+            elif thread_author := await get_thread_author(interaction.channel):
+                if thread_author and (thread_author.id == interaction.user.id or thread_author.id == self.message_author.id):
+                    return False
+        elif (
+                interaction.user.id == self.message_author.id
+                or interaction.channel.permissions_for(interaction.user).manage_messages
+            ):  # type: ignore
+                return True
 
         return False
 
