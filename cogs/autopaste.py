@@ -57,25 +57,26 @@ class DeleteMessage(View):
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         if (
-            not interaction.user
-            or not interaction.channel
+            not interaction.guild 
+            or not interaction.user
             or not isinstance(interaction.user, Member)
+            or not interaction.channel
         ):
             await self.on_timeout()
             return False
+        
+        if interaction.channel.permissions_for(interaction.user).manage_messages:  # type: ignore
+            return True
 
         if isinstance(interaction.channel, Thread) and interaction.channel.parent_id == HELP_CHANNEL_ID:
+            thread_author = await get_thread_author(interaction.channel)
             if interaction.user.get_role(HELP_MOD_ID):
                 return True
-            elif thread_author := await get_thread_author(interaction.channel):
-                if thread_author and (thread_author.id == interaction.user.id or thread_author.id == self.message_author.id):
-                    return False
-        elif (
-                interaction.user.id == self.message_author.id
-                or interaction.channel.permissions_for(interaction.user).manage_messages
-            ):  # type: ignore
-                return True
-
+            elif thread_author.id == self.message_author.id and thread_author.id == interaction.user.id:
+                return False
+        elif interaction.user.id == self.message_author.id:
+            return True
+        
         return False
 
 
