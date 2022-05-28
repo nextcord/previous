@@ -1,26 +1,26 @@
 # Previous
 The bot managing the Official [Nextcord Discord Server][NEXTCORDSERVER].
 
-# Features
-
+## Features
 - **Autopaste:**
     Automatically paste the contents of a file or codeblock to [our paste service][PASTESERVICE]. \
     (Source: [cogs/autopaste.py][AUTOPASTEPY])
+
+- **Automatic stars update:**
+    Automatically pull the stars from the [Nextcord][NEXTCORDREPOSITORY] and [Nextcord v3][NEXTCORDREPOSITORYV3] repoitories and update the [STARS_CHANNEL_ID] channel. \
+    (Source: [cogs/stars.py][STARSPY])
 
 - **Auto thread:**
     Automatically create a thread for each message sent in the [AUTO_THREAD_CHANNEL_ID] channel. \
     (Source: [cogs/autothread.py][AUTOTHREADPY])
 
-- **Automatic stars update:**
-    Automatically pull the stars from the [Nextcord][NEXTCORDREPOSITORY] and [Nextcord v3][NEXTCORDREPOSITORYV3] repoitories and update the [STARS_CHANNEL_ID] channel. \
-    (Source: [cogs/stars.py][STARSPY])
 
 - **Documentation:** 
     Search through the [Discord][DISCORDDOCS] and [Python][PYTHONDOCS] & [Nextcord][NEXTCORDDOCS] documentation. \
     (Source: [cogs/discorddoc.py ][DDOCSPY] (Discord) | [cogs/docs.py][DOCSPY] (Python & Nextcord))
 
 - **Help System:**
-    An help system using buttons for the [Nextcord server][NEXTCORDSERVER]. \
+    A help system using buttons for the [Nextcord server][NEXTCORDSERVER]. \
     (Source: [cogs/help.py][HELPPY]))	
 
 - **Others:**
@@ -31,18 +31,23 @@ The bot managing the Official [Nextcord Discord Server][NEXTCORDSERVER].
     - Charinfo: command to get information about a (unicode) character.
     (Source: [cogs/etc.py][ETCPY])
 
-# Running the bot
+## Running the bot
 1. Run a [consul.io][CONSUL] instance.
 2. Create or fill in the environment variables shown in the [.env.example][ENVFILE] file.
 3. Run the [main.py](./main.py) file to launch the bot.
 
-Any further help regarding setting up the and getting everything working is not provided.
+Any further help regarding setting up the bot and getting everything working is not provided.
 ## Contributing
-Refer to [Running the bot](#running-the-bot) for the steps to run the bot and contribute.
+Refer to [Running the bot](#running-the-bot) for the steps on how to run the bot and contribute.
+
+## Credits
+- [Rapptz](https://github.com/Rapptz)' open sourced [RoboDanny](https://github.com/Rapptz/RoboDanny) discord bot for the following commands:
+    - [charinfo][ETCPY]
+    - [docs][DOCSPY]
 
 
 [CONSUL]: https://www.consul.io/
-[NEXTCORDSERVER]: https://discord.gg/ZebatWssCB
+[NEXTCORDSERVER]: https://discord.gg/nextcord
 [PASTESERVICE]: https://paste.nextcord.dev
 [ENVFILE]: ./.env.example
 [AUTO_THREAD_CHANNEL_ID]: ./.env.example#L10
