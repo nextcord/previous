@@ -30,10 +30,12 @@ HELP_CHANNEL_ID: int = int(env["HELP_CHANNEL_ID"])
 HELP_LOGS_CHANNEL_ID: int = int(env["HELP_LOG_CHANNEL_ID"])
 HELPER_ROLE_ID: int = int(env["HELP_NOTIFICATION_ROLE_ID"])
 HELP_MOD_ID: int = int(env["HELP_MOD_ROLE_ID"])
+HELP_BANNED_ID: int = int(env["HELP_BANNED_ROLE_ID"])
 GUILD_ID: int = int(env["GUILD_ID"])
 CUSTOM_ID_PREFIX: str = "help:"
 NAME_TOPIC_REGEX: str = r"^(?P<topic>.*?) \((?P<author>[^)]*[^(]*)\)$"
 WAIT_FOR_TIMEOUT: int = 1800  # 30 minutes
+NO_HELP_MESSAGE: str = "You are banned from creating help threads. DM Modmail if you want to appeal it."
 
 closing_message = (
     "If your question has not been answered or your issue not "
@@ -228,6 +230,13 @@ class HelpView(ui.View):
             HelpButton("Nextcord", style=ButtonStyle.blurple, custom_id="nextcord")
         )
         self.add_item(HelpButton("Python", style=ButtonStyle.green, custom_id="python"))
+    
+    async def interaction_check(self, interaction: Interaction):
+        if interaction.user.get_role(HELP_BANNED_ID) is not None:
+            await interaction.send(NO_HELP_MESSAGE, ephemeral=True)
+            return False
+
+        return True
 
 
 class ConfirmButton(ui.Button["ConfirmView"]):
