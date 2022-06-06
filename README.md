@@ -1,4 +1,5 @@
 # Previous
+
 The bot managing the Official [Nextcord Discord Server][NEXTCORDSERVER].
 
 ## Features
@@ -32,9 +33,22 @@ The bot managing the Official [Nextcord Discord Server][NEXTCORDSERVER].
     (Source: [cogs/etc.py][ETCPY])
 
 ## Running the bot
-1. Run a [consul.io][CONSUL] instance.
-2. Create or fill in the environment variables shown in the [.env.example][ENVFILE] file.
-3. Run the [main.py](./main.py) file to launch the bot.
+
+### Development
+
+1. [Install docker](DOCKER)
+2. Copy [.env.example](ENVFILE) to .env
+3. Set each variable to your values
+  `CONSUL_HOST` by default in dev mode is `http://consul:8500`
+  `CONSUL_TOKEN` is empty in dev mode, set it blank
+4. Start docker
+  `docker-compose up --build` (use `-d` for no output to console but to `docker logs`)
+
+#### Stopping
+
+```bash
+docker-compose down (or ctrl + c when attached)
+```
 
 Any further help regarding setting up the bot and getting everything working is not provided.
 ## Contributing
@@ -46,6 +60,7 @@ Refer to [Running the bot](#running-the-bot) for the steps on how to run the bot
     - [docs][DOCSPY]
 
 
+[DOCKER]: https://docs.docker.com/get-docker/
 [CONSUL]: https://www.consul.io/
 [NEXTCORDSERVER]: https://discord.gg/nextcord
 [PASTESERVICE]: https://paste.nextcord.dev
