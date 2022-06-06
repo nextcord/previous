@@ -36,8 +36,8 @@ The bot managing the Official [Nextcord Discord Server][NEXTCORDSERVER].
 
 ### Development
 
-1. [Install docker](DOCKER)
-2. Copy [.env.example](ENVFILE) to .env
+1. [Install docker][DOCKER]
+2. Copy [.env.example][ENVFILE] to .env
 3. Set each variable to your values
   `CONSUL_HOST` by default in dev mode is `http://consul:8500`
   `CONSUL_TOKEN` is empty in dev mode, set it blank
