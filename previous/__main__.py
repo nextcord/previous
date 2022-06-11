@@ -1,17 +1,29 @@
-from os import environ as env
+from os import getenv
 from re import compile
 
 import os
-import aiohttp
 import nextcord
+from aiohttp import ClientSession
 
 from nextcord import Intents, Interaction
-from nextcord.ext import commands
+from nextcord.ext.commands import Bot
 from nextcord.ext.commands import errors
 from nextcord.ext.application_checks import errors as application_errors
 
-bot = commands.Bot("=", intents=Intents(messages=True, guilds=True, members=True))
-bot.load_extension("jishaku")
+
+class MyBot(Bot):
+    session: ClientSession
+
+    async def startup(self):
+        self.session = ClientSession()
+
+    def run(self, *args, **kwargs) -> None:
+        self.loop.create_task(self.startup())
+
+        super().run(*args, **kwargs)
+
+
+bot = MyBot("=", intents=Intents(messages=True, guilds=True, members=True))
 
 issue_regex = compile(r"##(\d+)")
 discord_regex = compile(r"#!(\d+)")
@@ -36,21 +48,28 @@ async def on_command_error(ctx, error):
         return
     elif isinstance(error, errors.MissingRole):
         role = ctx.guild.get_role(int(error.missing_role))  # type: ignore
-        await ctx.send(f"\"{role.name}\" is required to use this command.")  # type: ignore
+        await ctx.send(f'"{role.name}" is required to use this command.')  # type: ignore
         return
     else:
         await ctx.send(
             f"This command raised an exception: `{type(error)}:{str(error)}`"
         )
 
+
 @bot.event
-async def on_application_command_error(interaction: Interaction, error: Exception) -> None:
+async def on_application_command_error(
+    interaction: Interaction, error: Exception
+) -> None:
     if isinstance(error, application_errors.ApplicationMissingRole):
         role = interaction.guild.get_role(int(error.missing_role))  # type: ignore
         await interaction.send(f"{role.mention} role is required to use this command.", ephemeral=True)  # type: ignore
         return
     else:
-        await interaction.send(f"This command raised an exception: `{type(error)}:{str(error)}`", ephemeral=True)
+        await interaction.send(
+            f"This command raised an exception: `{type(error)}:{str(error)}`",
+            ephemeral=True,
+        )
+
 
 @bot.listen()
 async def on_message(message):
@@ -73,16 +92,12 @@ async def todo(ctx):
     )
 
 
-for filename in os.listdir("./cogs"):
+for filename in os.listdir("./previous/cogs"):
     if filename.endswith(".py"):
-        bot.load_extension(f"cogs.{filename[:-3]}")
+        bot.load_extension(f"previous.cogs.{filename[:-3]}")
     elif os.path.isfile(filename):
         print(f"Unable to load {filename[:-3]}")
 
 
-async def startup():
-    bot.session = aiohttp.ClientSession()
-
-
-bot.loop.create_task(startup())
-bot.run(env["TOKEN"])
+bot.load_extension("jishaku")
+bot.run(getenv("TOKEN"))
