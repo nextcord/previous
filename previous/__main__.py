@@ -29,16 +29,6 @@ class MyBot(Bot):
 
 bot = MyBot("=", intents=Intents(messages=True, guilds=True, members=True))
 
-issue_regex = compile(r"##(\d+)")
-discord_regex = compile(r"#!(\d+)")
-
-
-@bot.command()
-async def todo(ctx):
-    await ctx.send(
-        "https://github.com/nextcord/nextcord/projects/1 and going through all the issues"
-    )
-
 
 for filename in os.listdir("./previous/cogs"):
     if filename.endswith(".py"):
