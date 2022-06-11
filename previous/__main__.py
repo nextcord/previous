@@ -29,48 +29,6 @@ issue_regex = compile(r"##(\d+)")
 discord_regex = compile(r"#!(\d+)")
 
 
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, errors.CommandNotFound):
-        return
-    elif isinstance(error, errors.TooManyArguments):
-        await ctx.send("You are giving too many arguments!")
-        return
-    elif isinstance(error, errors.BadArgument):
-        await ctx.send(
-            "The library ran into an error attempting to parse your argument."
-        )
-        return
-    elif isinstance(error, errors.MissingRequiredArgument):
-        await ctx.send("You're missing a required argument.")
-    # kinda annoying and useless error.
-    elif isinstance(error, nextcord.NotFound) and "Unknown interaction" in str(error):
-        return
-    elif isinstance(error, errors.MissingRole):
-        role = ctx.guild.get_role(int(error.missing_role))  # type: ignore
-        await ctx.send(f'"{role.name}" is required to use this command.')  # type: ignore
-        return
-    else:
-        await ctx.send(
-            f"This command raised an exception: `{type(error)}:{str(error)}`"
-        )
-
-
-@bot.event
-async def on_application_command_error(
-    interaction: Interaction, error: Exception
-) -> None:
-    if isinstance(error, application_errors.ApplicationMissingRole):
-        role = interaction.guild.get_role(int(error.missing_role))  # type: ignore
-        await interaction.send(f"{role.mention} role is required to use this command.", ephemeral=True)  # type: ignore
-        return
-    else:
-        await interaction.send(
-            f"This command raised an exception: `{type(error)}:{str(error)}`",
-            ephemeral=True,
-        )
-
-
 @bot.listen()
 async def on_message(message):
     if result := issue_regex.search(message.content):
