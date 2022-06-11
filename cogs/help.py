@@ -1,3 +1,4 @@
+import asyncio
 from typing import Dict, Union
 
 from asyncio import TimeoutError
@@ -23,7 +24,7 @@ from nextcord import (
     ui,
     utils,
     slash_command,
-    SlashOption
+    SlashOption,
 )
 
 from nextcord.ext import commands, tasks
@@ -221,7 +222,7 @@ class HelpView(ui.View):
 
         self.add_item(HelpButton("Nextcord", style=ButtonStyle.blurple, custom_id="nextcord"))
         self.add_item(HelpButton("Python", style=ButtonStyle.green, custom_id="python"))
-    
+
     async def interaction_check(self, interaction: Interaction):
         if interaction.user.get_role(HELP_BANNED_ID) is not None:
             await interaction.send(NO_HELP_MESSAGE, ephemeral=True)
@@ -278,7 +279,7 @@ class ThreadCloseView(ui.View):
 class HelpCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.close_empty_threads.start()
+        #  self.close_empty_threads.start()
         self.bot.loop.create_task(self.create_views())
 
     async def create_views(self):
@@ -421,9 +422,76 @@ class HelpCog(commands.Cog):
             )
             return
 
-        author = match(NAME_TOPIC_REGEX, interaction.channel.name).group("author")  # type: ignore # channel and match can't be None
-        await interaction.send(f'Setting the topic to **"{emoji} {topic}"**', ephemeral=True)
-        await interaction.channel.edit(name=f"{emoji} {topic} ({author})")  # type: ignore # channel can't be None here
+        # helper to ignore any error while editing
+        async def _edit_message(message, new_content: str) -> None:
+            try:
+                await message.edit(content=new_content)
+            except Exception:
+                pass
+
+        # Prevent "application did not respond" client error by responding first,
+        # easier to handle errors this way.
+        message = await interaction.send(f"Setting the topic, please wait...", ephemeral=True)
+
+        previous_values = match(NAME_TOPIC_REGEX, interaction.channel.name)
+        if not previous_values:
+            await _edit_message(
+                message, "❌ **Error:** This help thread has an invalid name. Please contact a moderator."
+            )
+            return
+
+        current_topic, author = previous_values.groups()
+        # max channel name length is 100
+        allowed_length = 100 - (len(author) + len(emoji) + 5)
+        new_topic = f"{emoji} {topic}"
+
+        if new_topic == current_topic:
+            await _edit_message(message, f"❌ **Error:** That is the current topic!")
+            return
+
+        if len(topic) > allowed_length:
+            await _edit_message(
+                message,
+                (
+                    f"❌ **Error:** That topic is too long! The maximum length is {allowed_length} characters. "
+                    f"You have {len(topic)} characters."
+                ),
+            )
+            return
+
+        colour = interaction.user.colour  # type: ignore
+        if colour == Colour.default():
+            colour = Colour.blurple()
+
+        author_embed = Embed(
+            description=f"🗨️ {interaction.user.mention} changed the topic of this thread's to:\n**{emoji} {topic} ({author})**",  # type: ignore
+            colour=colour,
+        )
+
+        try:
+            # wait 10 seconds for it to return something
+            # then assume we're being rate limited
+            # the lib waits for it to run out and tries again
+            # editing shouldn't take that long
+            await asyncio.wait_for(interaction.channel.edit(name=f"{new_topic} ({author})"), timeout=10)
+        except asyncio.TimeoutError:
+            await _edit_message(
+                message,
+                (
+                    "❌ **Error:** We are being rate limited. There is a ratelimit of 2 changes per 10 minutes. "
+                    "Please try again in ~10 minutes."
+                ),
+            )
+            return
+        except Exception as e:
+            await _edit_message(
+                message, f"❌ **Error:** Something went wrong while changing the topic of this thread.\n\n{e}"
+            )
+            return
+        else:
+            await _edit_message(message, "✅ **Success:** Topic changed!")
+            # this falls back to Interaction.followup so is safe to use here.
+            await interaction.send(embed=author_embed)
 
 
 def setup(bot):
