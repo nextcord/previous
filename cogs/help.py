@@ -279,7 +279,7 @@ class ThreadCloseView(ui.View):
 class HelpCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        #  self.close_empty_threads.start()
+        self.close_empty_threads.start()
         self.bot.loop.create_task(self.create_views())
 
     async def create_views(self):
