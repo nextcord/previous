@@ -22,25 +22,15 @@ class MyBot(Bot):
 
         super().run(*args, **kwargs)
 
+    def on_application_command_error(self, *_):
+        # we have a listener cog, use this to ignore consle errors
+        ...
+
 
 bot = MyBot("=", intents=Intents(messages=True, guilds=True, members=True))
 
 issue_regex = compile(r"##(\d+)")
 discord_regex = compile(r"#!(\d+)")
-
-
-@bot.listen()
-async def on_message(message):
-    if result := issue_regex.search(message.content):
-        issue_id = result.groups()[0]
-        await message.channel.send(
-            f"https://github.com/nextcord/nextcord/issues/{issue_id}"
-        )
-    if result := discord_regex.search(message.content):
-        issue_id = result.groups()[0]
-        await message.channel.send(
-            f"https://github.com/rapptz/discord.py/issues/{issue_id}"
-        )
 
 
 @bot.command()
