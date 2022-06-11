@@ -442,6 +442,7 @@ class HelpCog(commands.Cog):
 
         current_topic, author = previous_values.groups()
         # max channel name length is 100
+        # 5 = "[emoji]< >[topic]< ><(>[author]<)>" + 1 extra space to be sure
         allowed_length = 100 - (len(author) + len(emoji) + 5)
         new_topic = f"{emoji} {topic}"
 
