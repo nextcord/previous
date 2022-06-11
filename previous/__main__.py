@@ -1,14 +1,10 @@
-from os import getenv
-from re import compile
+from os import getenv, listdir
+from os.path import isfile
 
-import os
-import nextcord
 from aiohttp import ClientSession
 
-from nextcord import Intents, Interaction
+from nextcord import Intents
 from nextcord.ext.commands import Bot
-from nextcord.ext.commands import errors
-from nextcord.ext.application_checks import errors as application_errors
 
 
 class MyBot(Bot):
@@ -30,10 +26,10 @@ class MyBot(Bot):
 bot = MyBot("=", intents=Intents(messages=True, guilds=True, members=True))
 
 
-for filename in os.listdir("./previous/cogs"):
+for filename in listdir("./previous/cogs"):
     if filename.endswith(".py"):
         bot.load_extension(f"previous.cogs.{filename[:-3]}")
-    elif os.path.isfile(filename):
+    elif isfile(filename):
         print(f"Unable to load {filename[:-3]}")
 
 
