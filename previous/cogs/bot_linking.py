@@ -14,6 +14,7 @@ class BotLinking(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # self.prune_loop.start()
+        # FIXME: comment for testing, temporary - will allow better config
 
     @commands.group()
     async def link(self, ctx):
