@@ -1,4 +1,4 @@
-from os import environ as env
+from os import getenv
 from typing import TYPE_CHECKING
 
 from nextcord.ext import commands
@@ -8,9 +8,7 @@ if TYPE_CHECKING:
     from previous.__main__ import Previous
 
 
-AUTO_THREAD_CHANNEL_ID = (
-    int(env["AUTO_THREAD_CHANNEL_ID"]) if "AUTO_THREAD_CHANNEL_ID" in env else None
-)
+AUTO_THREAD_CHANNEL_ID = getenv("AUTO_THREAD_CHANNEL_ID", 0)
 
 
 class AutoThread(commands.Cog):
@@ -20,8 +18,6 @@ class AutoThread(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: Message):
         if message.author.bot:
-            return
-        if not AUTO_THREAD_CHANNEL_ID:
             return
 
         if message.channel.id == AUTO_THREAD_CHANNEL_ID:
