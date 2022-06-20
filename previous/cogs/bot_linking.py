@@ -1,4 +1,4 @@
-from os import environ as env
+from os import getenv
 from typing import Literal, TYPE_CHECKING
 
 import nextcord
@@ -9,9 +9,9 @@ if TYPE_CHECKING:
     from previous.__main__ import Previous
 
 
-LOG_CHANNEL_ID = int(env["BOT_LINKING_LOG_CHANNEL_ID"])
-GUILD_ID = int(env["GUILD_ID"])
-BOOSTER_ROLE_ID = int(env["BOOSTER_ROLE_ID"])
+LOG_CHANNEL_ID = int(getenv("BOT_LINKING_LOG_CHANNEL_ID", 0))
+GUILD_ID = int(getenv("GUILD_ID", 0))
+BOOSTER_ROLE_ID = int(getenv("BOOSTER_ROLE_ID", 0))
 
 
 class BotLinking(commands.Cog):
