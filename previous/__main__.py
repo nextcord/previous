@@ -7,7 +7,7 @@ from nextcord import Intents
 from nextcord.ext.commands import Bot
 
 
-class MyBot(Bot):
+class Previous(Bot):
     session: ClientSession
 
     async def startup(self):
@@ -23,7 +23,7 @@ class MyBot(Bot):
         ...
 
 
-bot = MyBot("=", intents=Intents(messages=True, guilds=True, members=True))
+bot = Previous("=", intents=Intents(messages=True, guilds=True, members=True))
 
 
 for filename in listdir("./previous/cogs"):

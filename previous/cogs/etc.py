@@ -398,5 +398,5 @@ class Etc(commands.Cog):
         await ctx.send(msg)
 
 
-def setup(bot):
+def setup(bot: Previous):
     bot.add_cog(Etc())

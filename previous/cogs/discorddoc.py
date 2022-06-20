@@ -1,10 +1,14 @@
 import nextcord
 from algoliasearch.search_client import SearchClient
 from nextcord.ext import commands
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from previous.__main__ import Previous
 
 
 class DiscordHelp(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Previous):
         self.bot = bot
         ## Fill out from trying a search on the ddevs portal
         app_id = "BH4D9OD16A"
@@ -43,5 +47,5 @@ class DiscordHelp(commands.Cog):
         return last
 
 
-def setup(bot):
+def setup(bot: Previous):
     bot.add_cog(DiscordHelp(bot))

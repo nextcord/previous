@@ -18,6 +18,7 @@ from .help import HELP_CHANNEL_ID, HELP_MOD_ID, get_thread_author
 
 if TYPE_CHECKING:
     from nextcord import Member, Message, User
+    from previous.__main__ import Previous
 
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
@@ -88,11 +89,11 @@ class DeleteMessage(View):
 
 
 class AutoPaste(Cog):
-    def __init__(self, bot) -> None:
-        self.bot: Bot = bot
+    def __init__(self, bot: Previous) -> None:
+        self.bot = bot
 
     async def do_upload(self, content: str, language: str) -> str:
-        res = await self.bot.session.post(  # type: ignore
+        res = await self.bot.session.post(
             url="https://paste.nextcord.dev/api/new",
             json={"content": str(content), "language": language},
             headers={"Content-Type": "application/json"},
@@ -185,5 +186,5 @@ class AutoPaste(Cog):
         )
 
 
-def setup(bot):
+def setup(bot: Previous):
     bot.add_cog(AutoPaste(bot))

@@ -1,9 +1,13 @@
 from os import environ as env
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
 
 import nextcord
 from nextcord.ext import commands, tasks
 from nextcord.mentions import AllowedMentions
+
+if TYPE_CHECKING:
+    from previous.__main__ import Previous
+
 
 LOG_CHANNEL_ID = int(env["BOT_LINKING_LOG_CHANNEL_ID"])
 GUILD_ID = int(env["GUILD_ID"])
@@ -11,7 +15,7 @@ BOOSTER_ROLE_ID = int(env["BOOSTER_ROLE_ID"])
 
 
 class BotLinking(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Previous):
         self.bot = bot
         # self.prune_loop.start()
         # FIXME: comment for testing, temporary - will allow better config
@@ -145,5 +149,5 @@ class BotLinking(commands.Cog):
                         pass
 
 
-def setup(bot):
+def setup(bot: Previous):
     bot.add_cog(BotLinking(bot))

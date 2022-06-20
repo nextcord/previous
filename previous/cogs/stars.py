@@ -9,7 +9,7 @@ class GitHubStars(commands.Cog):
 
     STARS_CHANNEL_ID = int(env["STARS_CHANNEL_ID"])
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Previous):
         self.__bot = bot
         self.update_stars.start()
 
@@ -41,5 +41,5 @@ class GitHubStars(commands.Cog):
         self.update_stars.cancel()
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Previous):
     bot.add_cog(GitHubStars(bot))

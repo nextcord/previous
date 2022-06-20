@@ -17,11 +17,11 @@ from nextcord.ext.application_checks import ApplicationMissingRole
 if TYPE_CHECKING:
     from nextcord import Interaction
 
-    from ..__main__ import MyBot
+    from ..__main__ import Previous
 
 
 class Errors(Cog):
-    def __init__(self, bot: MyBot):
+    def __init__(self, bot: Previous):
         self.bot = bot
 
     @Cog.listener()
@@ -65,5 +65,5 @@ class Errors(Cog):
             )
 
 
-def setup(bot: MyBot):
+def setup(bot: Previous):
     bot.add_cog(Errors(bot))

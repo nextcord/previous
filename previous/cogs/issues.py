@@ -8,14 +8,14 @@ from nextcord.ext.commands import Cog, Context, command
 if TYPE_CHECKING:
     from nextcord import Message
 
-    from ..__main__ import MyBot
+    from ..__main__ import Previous
 
 
 class Issues(Cog):
     ISSUE_RE = re_compile(r"##(?P<issue>\d+)")
     DPY_RE = re_compile(r"#!(?P<issue>\d+)")
 
-    def __init__(self, bot: MyBot):
+    def __init__(self, bot: Previous):
         self.bot = bot
 
     @Cog.listener()
@@ -39,5 +39,5 @@ class Issues(Cog):
         )
 
 
-def setup(bot: MyBot):
+def setup(bot: Previous):
     bot.add_cog(Issues(bot))

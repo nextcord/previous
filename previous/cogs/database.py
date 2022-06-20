@@ -3,12 +3,17 @@ from __future__ import annotations
 from base64 import b64decode
 from json import loads
 from os import environ as env
+from typing import TYPE_CHECKING
 
 from nextcord.ext import commands
 
 
+if TYPE_CHECKING:
+    from previous.__main__ import Previous
+
+
 class Database(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Previous):
         self.bot = bot
         self.api_base: str = env["CONSUL_ADDR"]
         self.consul_token: str = env["CONSUL_TOKEN"]
@@ -63,5 +68,5 @@ class Database(commands.Cog):
         }
 
 
-def setup(bot):
+def setup(bot: Previous):
     bot.add_cog(Database(bot))

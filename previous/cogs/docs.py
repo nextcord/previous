@@ -379,12 +379,15 @@ import io
 import os
 import re
 import zlib
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
 
 import nextcord as discord
 from nextcord.ext import commands
 
 from .utils import fuzzy
+
+if TYPE_CHECKING:
+    from previous.__main__ import Previous
 
 
 class SphinxObjectFileReader:
@@ -422,7 +425,7 @@ class SphinxObjectFileReader:
 
 class Docs(commands.Cog):
     # full credit to https://github.com/Rapptz/RoboDanny
-    def __init__(self, bot):
+    def __init__(self, bot: Previous):
         self.bot = bot
 
     def parse_object_inv(self, stream: SphinxObjectFileReader, url: str) -> Dict:
@@ -558,5 +561,5 @@ class Docs(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot):
+def setup(bot: Previous):
     bot.add_cog(Docs(bot))
