@@ -379,10 +379,11 @@ import io
 import os
 import re
 import zlib
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Optional
 
-import nextcord as discord
+import nextcord
 from nextcord.ext import commands
+from nextcord.ext.commands import Context
 
 from .utils import fuzzy
 
@@ -510,7 +511,7 @@ class Docs(commands.Cog):
         if key.startswith("master"):
             # point the abc.Messageable types properly:
             q = obj.lower()
-            for name in dir(discord.abc.Messageable):
+            for name in dir(nextcord.abc.Messageable):
                 if name[0] == "_":
                     continue
                 if q == name:
@@ -522,42 +523,44 @@ class Docs(commands.Cog):
         def transform(tup):
             return tup[0]
 
-        matches = fuzzy.finder(obj, cache, key=lambda t: t[0], lazy=False)[:8]
+        matches = fuzzy.finder(obj, cache, key=lambda t: t[0], lazy=False)[:8]  # type: ignore
 
-        e = discord.Embed(colour=discord.Colour.blurple())
+        e = nextcord.Embed(colour=nextcord.Colour.blurple())
         if len(matches) == 0:
             return await ctx.send("Could not find anything. Sorry.")
 
         e.description = "\n".join(f"[`{key}`]({url})" for key, url in matches)
         ref = ctx.message.reference
         refer = None
-        if ref and isinstance(ref.resolved, discord.Message):
+        if ref and isinstance(ref.resolved, nextcord.Message):
             refer = ref.resolved.to_reference()
         await ctx.send(embed=e, reference=refer)
 
     @commands.group(name="docs", help="python docs", invoke_without_command=True)
-    async def docs_group(self, ctx: commands.Context, *, obj: str = None):
+    async def docs_group(self, ctx: Context, *, obj: Optional[str] = None):
         await self.do_docs(ctx, "master", obj)
 
     @docs_group.command(name="menus")
-    async def docs_menu_cmd(self, ctx: commands.Context, *, obj: str = None):
+    async def docs_menu_cmd(self, ctx: Context, *, obj: Optional[str] = None):
         await self.do_docs(ctx, "menus", obj)
 
     @docs_group.command(name="ipc")
-    async def docs_ipc_cmd(self, ctx: commands.Context, *, obj: str = None):
+    async def docs_ipc_cmd(self, ctx: Context, *, obj: Optional[str] = None):
         await self.do_docs(ctx, "ipc", obj)
 
     @docs_group.command(name="python", aliases=["py"])
-    async def docs_python_cmd(self, ctx: commands.Context, *, obj: str = None):
+    async def docs_python_cmd(self, ctx: Context, *, obj: Optional[str] = None):
         await self.do_docs(ctx, "python", obj)
 
     @commands.command(
         help="delete cache of docs (owner only)", aliases=["purge-docs", "deldocs"]
     )
     @commands.is_owner()
-    async def docscache(self, ctx: commands.Context):
+    async def docscache(self, ctx: Context):
         del self._docs_cache
-        embed = discord.Embed(title="Purged docs cache.", color=discord.Color.blurple())
+        embed = nextcord.Embed(
+            title="Purged docs cache.", color=nextcord.Color.blurple()
+        )
         await ctx.send(embed=embed)
 
 
