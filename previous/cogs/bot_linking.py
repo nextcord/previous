@@ -3,6 +3,7 @@ from typing import Literal, TYPE_CHECKING
 
 import nextcord
 from nextcord.ext import commands, tasks
+from nextcord.ext.commands import Context
 from nextcord.mentions import AllowedMentions
 
 if TYPE_CHECKING:
@@ -21,9 +22,9 @@ class BotLinking(commands.Cog):
         # FIXME: comment for testing, temporary - will allow better config
 
     @commands.group()
-    async def link(self, ctx):
+    async def link(self, ctx: Context):
         if ctx.invoked_subcommand is None:
-            await ctx.send("No.")
+            await ctx.send_help(ctx.command)
 
     @link.command()
     @commands.has_permissions(administrator=True)
