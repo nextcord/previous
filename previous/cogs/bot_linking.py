@@ -35,37 +35,33 @@ class BotLinking(commands.Cog):
         bot: nextcord.User,
         owner: nextcord.User,
     ):
-        db = self.bot.get_cog("Database")
-
         if not bot.bot or owner.bot:
             await ctx.send("You fucked up the order. Good job.")
             return
 
-        await db.set(f"bots/{bot.id}", {"owner_id": owner.id, "status": status})
+        await self.bot.db.set(
+            f"bots/{bot.id}", {"owner_id": owner.id, "status": status}
+        )
 
         await ctx.send(f"Successfully linked <@{bot.id}> to <@{owner.id}>.")
 
     @link.command()
     @commands.has_permissions(administrator=True)
     async def remove(self, ctx, bot: nextcord.Object):
-        db = self.bot.get_cog("Database")
-
-        current = await db.get(f"bots/{bot.id}")
+        current = await self.bot.db.get(f"bots/{bot.id}")
 
         if not current:
             await ctx.send(f"This bot is not linked to anyone.")
             return
 
-        await db.delete(f"bots/{bot.id}")
+        await self.bot.db.delete(f"bots/{bot.id}")
 
         await ctx.send(f"Successfully unlinked <@{bot.id}>.")
 
     @link.command()
     @commands.has_permissions(administrator=True)
     async def list(self, ctx):
-        db = self.bot.get_cog("Database")
-
-        bots = await db.list("bots/")
+        bots = await self.bot.db.list("bots/")
 
         if bots is None:
             await ctx.send("No bots linked.")

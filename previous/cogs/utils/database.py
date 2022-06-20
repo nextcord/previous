@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from previous.__main__ import Previous
 
 
-class Database(commands.Cog):
+class Database:
     def __init__(self, bot: Previous):
         self.bot = bot
         self.api_base: str = env["CONSUL_ADDR"]
@@ -66,7 +66,3 @@ class Database(commands.Cog):
             )
             for item in data
         }
-
-
-def setup(bot: Previous):
-    bot.add_cog(Database(bot))

@@ -2,13 +2,17 @@ from os import getenv, listdir
 from os.path import isfile
 
 from aiohttp import ClientSession
-
 from nextcord import Intents
 from nextcord.ext.commands import Bot
+
+from previous.cogs.utils.database import Database
 
 
 class Previous(Bot):
     session: ClientSession
+
+    def __init__(self, *args, **kwargs):
+        self.db = Database(self)
 
     async def startup(self):
         self.session = ClientSession()
