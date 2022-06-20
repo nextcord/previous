@@ -375,15 +375,19 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 """  # R. Danny (https://github.com/Rapptz/RoboDanny) license
 
 import unicodedata
+from typing import TYPE_CHECKING
 
-from discord.ext import commands
+from nextcord.ext import commands
+
+if TYPE_CHECKING:
+    from previous.__main__ import Previous
 
 
 class Etc(commands.Cog):
     @commands.command()
     async def charinfo(self, ctx, *, characters: str):
-        """
-        Shows you information about a number of characters.
+        """Shows you information about a number of characters.
+
         Only up to 25 characters at a time.
         """
 
@@ -395,6 +399,7 @@ class Etc(commands.Cog):
         msg = "\n".join(map(to_string, characters))
         if len(msg) > 2000:
             return await ctx.send("Output too long to display.")
+
         await ctx.send(msg)
 
 
