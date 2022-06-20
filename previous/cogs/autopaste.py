@@ -1,14 +1,17 @@
 import re
 from typing import List, Optional, Tuple
 
-from nextcord import Message, Thread
-from nextcord.enums import ButtonStyle
-from nextcord.errors import HTTPException, NotFound
-from nextcord.ext.commands import Cog
-from nextcord.ext.commands.bot import Bot
-from nextcord.interactions import Interaction
-from nextcord.member import Member
-from nextcord.mentions import AllowedMentions
+from nextcord import (
+    AllowedMentions,
+    ButtonStyle,
+    HTTPException,
+    Interaction,
+    Member,
+    Message,
+    NotFound,
+    Thread,
+)
+from nextcord.ext.commands import Bot, Cog
 from nextcord.ui import View, button
 
 from .help import HELP_CHANNEL_ID, HELP_MOD_ID, get_thread_author
@@ -57,26 +60,32 @@ class DeleteMessage(View):
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         if (
-            not interaction.guild 
+            not interaction.guild
             or not interaction.user
             or not isinstance(interaction.user, Member)
             or not interaction.channel
         ):
             await self.on_timeout()
             return False
-        
+
         if interaction.channel.permissions_for(interaction.user).manage_messages:  # type: ignore
             return True
 
-        if isinstance(interaction.channel, Thread) and interaction.channel.parent_id == HELP_CHANNEL_ID:
+        if (
+            isinstance(interaction.channel, Thread)
+            and interaction.channel.parent_id == HELP_CHANNEL_ID
+        ):
             thread_author = await get_thread_author(interaction.channel)
             if interaction.user.get_role(HELP_MOD_ID):
                 return True
-            elif thread_author.id == self.message_author.id and thread_author.id == interaction.user.id:
+            elif (
+                thread_author.id == self.message_author.id
+                and thread_author.id == interaction.user.id
+            ):
                 return False
         elif interaction.user.id == self.message_author.id:
             return True
-        
+
         return False
 
 
