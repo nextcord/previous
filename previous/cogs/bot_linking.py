@@ -1,7 +1,8 @@
 from os import getenv
-from typing import Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import nextcord
+from nextcord import abc
 from nextcord.ext import commands, tasks
 from nextcord.ext.commands import Context
 from nextcord.mentions import AllowedMentions
@@ -83,20 +84,34 @@ class BotLinking(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def prune_loop(self):
-        await self.prune_bots()
+        try:
+            await self.prune_bots()
+        except RuntimeError as e:
+            print(f"ERROR IN PRUNE_BOTS: {type(e)}: {e}\n{e.__traceback__}")
 
     async def prune_bots(self):
         await self.bot.wait_until_ready()
 
         guild = self.bot.get_guild(GUILD_ID)
-        log_channel = await guild.fetch_channel(LOG_CHANNEL_ID)
 
-        db = self.bot.get_cog("Database")
+        if guild is None:
+            raise RuntimeError("Guild not found.")
+
+        log_channel = guild.get_channel(LOG_CHANNEL_ID)
+
+        if log_channel is None:
+            raise RuntimeError("Log channel not found")
+
+        if not isinstance(log_channel, abc.Messageable):
+            raise RuntimeError(
+                f"Log channel must be a messaeable, not {type(log_channel).__name__}"
+            )
 
         for user in guild.members:
             if not user.bot:
                 continue
-            metadata = await db.get(f"bots/{user.id}")
+
+            metadata = await self.bot.db.get(f"bots/{user.id}")
             if not metadata:
                 # Bot is not linked, kick it
                 try:
@@ -142,7 +157,7 @@ class BotLinking(commands.Cog):
                         await owner.send(
                             f"As a result of you unboosting nextcord, your bot {user.mention} has been kicked. Please re-boost to get your bot added back."
                         )
-                    except nextcord.Forbidden:  # 400 error lol?
+                    except nextcord.Forbidden:  # 400 error lol?  # hi epic this is a 403
                         pass
 
 
