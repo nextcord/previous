@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from typing import List, Optional, Tuple
 
@@ -20,14 +22,7 @@ codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
 discord_to_workbin = {"py": "python", "js": "javascript"}
 other_paste_services = ["pastebin.com", "sourceb.in", "srcb.in"]
-supported_content_types: List[str] = [
-    "text/plain",
-    "text/markdown",
-    "text/x-python",
-    "application/json",
-    "application/javascript",
-]
-content_type_to_lang = {
+content_type_to_lang: dict[str, str] = {
     "text/plain": "text",
     "text/markdown": "markdown",
     "text/x-python": "python",
@@ -121,7 +116,7 @@ class AutoPaste(Cog):
                     continue
 
                 content_type = attachment.content_type.split(";")[0].strip()
-                if content_type not in supported_content_types:
+                if content_type not in content_type_to_lang.keys():
                     continue
 
                 file_bytes = await attachment.read()
