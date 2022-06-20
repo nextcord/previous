@@ -44,7 +44,8 @@ class DeleteMessage(View):
     @button(emoji="❌", style=ButtonStyle.secondary, custom_id="delete_autopaste")
     async def delete_autopaste(self, _, interaction: Interaction) -> None:
         try:
-            await interaction.message.delete()  # type: ignore
+            if interaction.message:
+                await interaction.message.delete()
         except (HTTPException, NotFound):
             pass
 
