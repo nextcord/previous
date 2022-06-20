@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import re
-from typing import List, Optional, Tuple
+from typing import TYPE_CHECKING
 
 from nextcord import (
     AllowedMentions,
     ButtonStyle,
     HTTPException,
     Interaction,
-    Member,
-    Message,
     NotFound,
     Thread,
 )
@@ -17,6 +15,9 @@ from nextcord.ext.commands import Bot, Cog
 from nextcord.ui import View, button
 
 from .help import HELP_CHANNEL_ID, HELP_MOD_ID, get_thread_author
+
+if TYPE_CHECKING:
+    from nextcord import Member, Message, User
 
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
@@ -32,8 +33,10 @@ content_type_to_lang: dict[str, str] = {
 
 
 class DeleteMessage(View):
-    def __init__(self, message_author: Member):
-        self.message: Optional[Message] = None
+    message: Message
+    # this will exist when this is initialised
+
+    def __init__(self, message_author: User | Member):
         self.message_author = message_author
         super().__init__(timeout=300)  # 300 seconds == 5 minutes
 
@@ -49,7 +52,7 @@ class DeleteMessage(View):
     async def on_timeout(self) -> None:
         self.stop()
         try:
-            await self.message.edit(view=None)  # type: ignore
+            await self.message.edit(view=None)
         except (AttributeError, HTTPException, NotFound):
             pass
 
@@ -106,11 +109,11 @@ class AutoPaste(Cog):
         if message.content.startswith("!"):
             return
 
-        delete_view: DeleteMessage = DeleteMessage(message.author)  # type: ignore
+        delete_view = DeleteMessage(message.author)
 
         # Files
         if message.attachments:
-            uploaded_files: List[Tuple[str, str]] = []
+            uploaded_files: list[tuple[str, str]] = []
             for attachment in message.attachments:
                 if not attachment.content_type:
                     continue
