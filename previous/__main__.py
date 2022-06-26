@@ -13,6 +13,7 @@ class Previous(Bot):
 
     def __init__(self, *args, **kwargs):
         self.db = Database(self)
+        self.help_view_set = False
 
     async def startup(self):
         self.session = ClientSession()

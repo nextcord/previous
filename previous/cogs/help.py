@@ -1,10 +1,11 @@
-import asyncio
-from typing import Dict, Union
+from __future__ import annotations
 
+import asyncio
 from asyncio import TimeoutError
 from datetime import timedelta
 from os import environ as env
 from re import match
+from typing import Dict, TYPE_CHECKING
 
 from nextcord import (
     Button,
@@ -19,18 +20,21 @@ from nextcord import (
     Member,
     Message,
     MessageType,
+    SlashOption,
     Thread,
     ThreadMember,
+    User,
+    slash_command,
     ui,
     utils,
-    slash_command,
-    SlashOption,
 )
-
 from nextcord.ext import commands, tasks
 from nextcord.ext.application_checks import has_role as application_checks_has_role
 
 from .utils.split_txtfile import split_txtfile
+
+if TYPE_CHECKING:
+    from previous.__main__ import Previous
 
 HELP_CHANNEL_ID: int = int(env["HELP_CHANNEL_ID"])
 HELP_LOGS_CHANNEL_ID: int = int(env["HELP_LOG_CHANNEL_ID"])
@@ -61,7 +65,7 @@ closing_message = (
 )
 
 
-async def get_thread_author(channel: Thread) -> Member:
+async def get_thread_author(channel: Thread) -> User | Member:
     history = channel.history(oldest_first=True, limit=1)
     history_flat = await history.flatten()
     user = history_flat[0].mentions[0]
@@ -71,8 +75,8 @@ async def get_thread_author(channel: Thread) -> Member:
 async def close_help_thread(
     method: str,
     thread_channel: Thread,
-    thread_author: Member,
-    closed_by: Union[Member, ClientUser],
+    thread_author: Member | User,
+    closed_by: Member | ClientUser | User,
 ):
     """Closes a help thread. Is called from either the close button or the
     =close command.
@@ -112,13 +116,21 @@ async def close_help_thread(
         ),
         colour=0xDD2E44,  # Red
     )
-    await thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(embed=embed_log)
+
+    channel = thread_channel.guild.get_channel(HELP_LOGS_CHANNEL_ID)
+    assert channel is not None
+    await channel.send(embed=embed_log)  # type: ignore
     # Make some slight changes to the previous thread-closer embed
     # to send to the user via DM.
     embed_reply.title = "Your help thread in the Nextcord server has been closed."
-    embed_reply.description += f"\n\nTopic: **{topic}**\n\nYou can use [**this link**]({thread_jump_url}) to access the archived thread for future reference."
+    embed_reply.description += (  # type: ignore
+        f"\n\nTopic: **{topic}**\n\nYou can use [**this link**]({thread_jump_url}) "
+        "to access the archived thread for future reference."
+    )
+
     if thread_channel.guild.icon:
         embed_reply.set_thumbnail(url=thread_channel.guild.icon.url)
+
     try:
         await thread_author.send(embed=embed_reply)
     except (HTTPException, Forbidden):
@@ -135,10 +147,13 @@ class HelpButton(ui.Button["HelpView"]):
         self._help_type: str = help_type
 
     async def create_help_thread(self, interaction: Interaction) -> Thread:
-        thread = await interaction.channel.create_thread(
+        thread = await interaction.channel.create_thread(  # type: ignore
             name=f"{self._help_type} help ({interaction.user})",
             type=ChannelType.public_thread,
         )
+
+        assert interaction.user is not None
+        assert interaction.guild is not None
 
         # Send log
         embed_log = Embed(
@@ -151,7 +166,10 @@ class HelpButton(ui.Button["HelpView"]):
             ),
             colour=0x77B255,  # Green
         )
-        await interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID).send(embed=embed_log)
+        channel = interaction.guild.get_channel(HELP_LOGS_CHANNEL_ID)
+
+        assert channel is not None
+        await channel.send(embed=embed_log)  # type: ignore
 
         type_to_colour: Dict[str, Colour] = {
             "Nextcord": Colour.blurple(),
@@ -186,6 +204,8 @@ class HelpButton(ui.Button["HelpView"]):
         self, thread: Thread, interaction: Interaction
     ) -> None:
         assert self.view is not None
+        assert interaction.user is not None
+        assert self.view.bot.user is not None
 
         def is_allowed(message: Message) -> bool:
             return message.author.id == interaction.user.id and message.channel.id == thread.id and not thread.archived  # type: ignore
@@ -211,7 +231,8 @@ class HelpButton(ui.Button["HelpView"]):
 
         def disable_all_buttons():
             for _item in confirm_view.children:
-                _item.disabled = True
+                if isinstance(_item, (ui.Select, ui.Button)):
+                    _item.disabled = True
 
         confirm_content = (
             f"Are you really sure you want to make a {self._help_type} help thread?"
@@ -248,6 +269,8 @@ class HelpView(ui.View):
         self.add_item(HelpButton("Python", style=ButtonStyle.green, custom_id="python"))
 
     async def interaction_check(self, interaction: Interaction):
+        assert isinstance(interaction.user, Member)
+
         if interaction.user.get_role(HELP_BANNED_ID) is not None:
             await interaction.send(NO_HELP_MESSAGE, ephemeral=True)
             return False
@@ -262,6 +285,8 @@ class ConfirmButton(ui.Button["ConfirmView"]):
         )
 
     async def callback(self, interaction: Interaction):
+        assert self.view is not None
+
         self.view.value = (
             True if self.custom_id == f"{CUSTOM_ID_PREFIX}confirm_button" else False
         )
@@ -271,7 +296,7 @@ class ConfirmButton(ui.Button["ConfirmView"]):
 class ConfirmView(ui.View):
     def __init__(self):
         super().__init__(timeout=10.0)
-        self.value = None
+        self.value: bool | None = None
         self.add_item(
             ConfirmButton("Yes", ButtonStyle.green, custom_id="confirm_button")
         )
@@ -284,11 +309,13 @@ class ThreadCloseView(ui.View):
 
     @ui.button(label="Close", style=ButtonStyle.red, custom_id=f"{CUSTOM_ID_PREFIX}thread_close")  # type: ignore
     async def thread_close_button(self, button: Button, interaction: Interaction):
+        assert interaction.user is not None
+
         button.disabled = True
         await interaction.response.edit_message(view=self)
         thread_author = await get_thread_author(interaction.channel)  # type: ignore
         await close_help_thread(
-            "BUTTON", interaction.channel, thread_author, interaction.user
+            "BUTTON", interaction.channel, thread_author, interaction.user  # type: ignore
         )
 
     async def interaction_check(self, interaction: Interaction) -> bool:
@@ -320,7 +347,7 @@ class HelpCog(commands.Cog):
         self.bot.loop.create_task(self.create_views())
 
     async def create_views(self):
-        if getattr(self.bot, "help_view_set", False) is False:
+        if self.bot.help_view_set is False:
             self.bot.help_view_set = True
             self.bot.add_view(HelpView(self.bot))
             self.bot.add_view(ThreadCloseView())
@@ -349,6 +376,8 @@ class HelpCog(commands.Cog):
         if member.id != thread_author.id:
             return
 
+        assert self.bot.user is not None
+
         await close_help_thread(
             "EVENT [thread_member_remove]", thread, thread_author, self.bot.user
         )
@@ -358,6 +387,8 @@ class HelpCog(commands.Cog):
         await self.bot.wait_until_ready()
 
         guild = self.bot.get_guild(GUILD_ID)
+        assert guild is not None
+
         active_help_threads = [
             thread
             for thread in await guild.active_threads()
@@ -386,6 +417,8 @@ class HelpCog(commands.Cog):
             # can happen, ignore.
             if not all_messages or not (all_messages and all_messages[0].mentions):
                 continue
+
+            assert self.bot.user is not None
 
             thread_author = all_messages[0].mentions[0]
             if len(all_messages) >= 2:
