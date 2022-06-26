@@ -90,7 +90,7 @@ class RolesSelect(Select["RolesView"]):
         new_roles = [value.capitalize() for value in self.values]
 
         await interaction.edit(
-            content=f"You now have {''.join(new_roles) or 'no roles'}", view=self.view
+            content=f"You now have {', '.join(new_roles) or 'no roles'}", view=self.view
         )
 
 
