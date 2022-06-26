@@ -3,9 +3,9 @@ from __future__ import annotations
 import asyncio
 from asyncio import TimeoutError
 from datetime import timedelta
-from os import environ as env
+from os import getenv
 from re import match
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from nextcord import (
     Button,
@@ -36,19 +36,19 @@ from .utils.split_txtfile import split_txtfile
 if TYPE_CHECKING:
     from previous.__main__ import Previous
 
-HELP_CHANNEL_ID: int = int(env["HELP_CHANNEL_ID"])
-HELP_LOGS_CHANNEL_ID: int = int(env["HELP_LOG_CHANNEL_ID"])
-HELPER_ROLE_ID: int = int(env["HELP_NOTIFICATION_ROLE_ID"])
-HELP_MOD_ID: int = int(env["HELP_MOD_ROLE_ID"])
-HELP_BANNED_ID: int = int(env["HELP_BANNED_ROLE_ID"])
-GUILD_ID: int = int(env["GUILD_ID"])
+HELP_CHANNEL_ID: int = int(getenv("HELP_CHANNEL_ID", 0))
+HELP_LOGS_CHANNEL_ID: int = int(getenv("HELP_LOG_CHANNEL_ID", 0))
+HELPER_ROLE_ID: int = int(getenv("HELP_NOTIFICATION_ROLE_ID", 0))
+HELP_MOD_ID: int = int(getenv("HELP_MOD_ROLE_ID", 0))
+HELP_BANNED_ID: int = int(getenv("HELP_BANNED_ROLE_ID", 0))
+GUILD_ID: int = int(getenv("GUILD_ID", 0))
 CUSTOM_ID_PREFIX: str = "help:"
 NAME_TOPIC_REGEX: str = r"^(?P<topic>.*?) \((?P<author>[^)]*[^(]*)\)$"
 WAIT_FOR_TIMEOUT: int = 1800  # 30 minutes
 NO_HELP_MESSAGE: str = (
     "You are banned from creating help threads. DM Modmail if you want to appeal it."
 )
-HELP_TOPIC_EMOJIS: Dict[str, str] = {
+HELP_TOPIC_EMOJIS: dict[str, str] = {
     "🤚": "Help Needed",
     "🔥": "Active",
     "⏳": "Stalled",
@@ -171,7 +171,7 @@ class HelpButton(ui.Button["HelpView"]):
         assert channel is not None
         await channel.send(embed=embed_log)  # type: ignore
 
-        type_to_colour: Dict[str, Colour] = {
+        type_to_colour: dict[str, Colour] = {
             "Nextcord": Colour.blurple(),
             "Python": Colour.green(),
         }
