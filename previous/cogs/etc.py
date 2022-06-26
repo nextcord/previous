@@ -377,15 +377,15 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 import unicodedata
 from typing import TYPE_CHECKING
 
-from nextcord.ext import commands
+from nextcord.ext.commands import Cog, Context, command
 
 if TYPE_CHECKING:
     from previous.__main__ import Previous
 
 
-class Etc(commands.Cog):
-    @commands.command()
-    async def charinfo(self, ctx, *, characters: str):
+class Etc(Cog):
+    @command()
+    async def charinfo(self, ctx: Context, *, characters: str):
         """Shows you information about a number of characters.
 
         Only up to 25 characters at a time.
