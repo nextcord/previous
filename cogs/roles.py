@@ -16,24 +16,15 @@ ASSIGNABLE_ROLE_IDS = {int(r) for r in getenv("ASSIGNABLE_ROLE_IDS", "0,0").spli
 
 
 class RolesView(View):
-    def __init__(self, *, member: Member | None):
+    def __init__(self, *, member: Member):
         super().__init__(timeout=None)
 
         self.add_item(RolesSelect(member=member))
 
 
 class RolesSelect(Select["RolesView"]):
-    def __init__(self, *, member: Member | None):
-        # this is being invoked to add persistency
-        # we only care about custom_id for the store
-        # we cannot use guild.me as the bot is not ready so a guild is not available
-        if member is None:
-            return super().__init__(
-                custom_id="roles:select", options=[SelectOption(label="placeholder")]
-            )
-
+    def __init__(self, *, member: Member):
         super().__init__(
-            custom_id="roles:select",
             placeholder="Select your new roles",
             min_values=0,
             max_values=len(ASSIGNABLE_ROLE_IDS),
@@ -90,15 +81,6 @@ class RolesSelect(Select["RolesView"]):
 class Roles(Cog):
     def __init__(self, bot):
         self.bot = bot
-
-        self.bot.loop.create_task(self.create_views())
-
-    async def create_views(self):
-        if getattr(self.bot, "role_view_set", False) is False:
-            self.bot.add_view(RolesView(member=None))
-            # the view will accept None and only give us a select with a custom_id
-
-            self.bot.role_view_set = True
 
     @slash_command(guild_ids=[GUILD_ID], description="Self assign roles")
     async def roles(self, interaction: Interaction):
