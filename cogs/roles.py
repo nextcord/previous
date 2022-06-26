@@ -106,7 +106,7 @@ class Roles(Cog):
 
             self.bot.role_view_set = True
 
-    @slash_command(guild_ids=[GUILD_ID])
+    @slash_command(guild_ids=[GUILD_ID], description="Self assign roles")
     async def roles(self, interaction: Interaction):
         assert isinstance(interaction.user, Member)
         # this shoud never assert as it cannot be used in guilds
