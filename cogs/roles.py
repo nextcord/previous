@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from nextcord import Interaction, Member, Object, SelectOption, slash_command
 from nextcord.ext.commands import Cog
 from nextcord.ui import Select, View
+from nextcord.utils import get
 
 if TYPE_CHECKING:
     from nextcord.abc import Snowflake
@@ -62,6 +63,10 @@ class RolesSelect(Select["RolesView"]):
             if interaction.user.get_role(role_id) is None and role in self.values:
                 # user does not have the role but wants it
                 roles.append(Object(role_id))
+                option = get(self.options, value=role)
+                if option is not None:
+                    index = self.options.index(option)
+                    self.options[index].default = True
             elif (
                 interaction.user.get_role(role_id) is not None
                 and role not in self.values
@@ -69,12 +74,18 @@ class RolesSelect(Select["RolesView"]):
                 # user has the role but does not want it
                 role_ids = [r.id for r in roles]
                 roles.pop(role_ids.index(role_id))
+                option = get(self.options, value=role)
+                if option is not None:
+                    index = self.options.index(option)
+                    self.options[index].default = False
 
         await interaction.user.edit(roles=roles)
 
         new_roles = [value.capitalize() for value in self.values]
 
-        await interaction.edit(content=f"You now have {new_roles}")
+        await interaction.edit(
+            content=f"You now have {''.join(new_roles) or 'no roles'}", view=self.view
+        )
 
 
 class Roles(Cog):
