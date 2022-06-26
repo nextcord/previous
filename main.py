@@ -10,7 +10,7 @@ from nextcord.ext import commands
 from nextcord.ext.commands import errors
 from nextcord.ext.application_checks import errors as application_errors
 
-bot = commands.Bot("=", intents=Intents(messages=True, guilds=True, members=True))
+bot = commands.Bot("=", intents=Intents(messages=True, guilds=True, members=True, message_content=True))
 bot.load_extension("jishaku")
 
 issue_regex = compile(r"##(\d+)")
