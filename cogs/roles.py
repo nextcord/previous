@@ -22,21 +22,15 @@ class RolesView(View):
         self.add_item(RolesSelect(member=member))
 
 
-class FakeMember(Member):
-    def __init__(self):
-        ...
-
-    def get_role(self, *_):
-        ...
-
-
 class RolesSelect(Select["RolesView"]):
     def __init__(self, *, member: Member | None):
         # this is being invoked to add persistency
         # we only care about custom_id for the store
         # we cannot use guild.me as the bot is not ready so a guild is not available
         if member is None:
-            member = FakeMember()
+            return super().__init__(
+                custom_id="roles:select", options=[SelectOption(label="placeholder")]
+            )
 
         super().__init__(
             custom_id="roles:select",
