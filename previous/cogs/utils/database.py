@@ -5,8 +5,6 @@ from json import loads
 from os import environ as env
 from typing import TYPE_CHECKING
 
-from nextcord.ext import commands
-
 
 if TYPE_CHECKING:
     from previous.__main__ import Previous

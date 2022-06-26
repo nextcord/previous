@@ -375,11 +375,13 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 """  # R. Danny (https://github.com/Rapptz/RoboDanny) license
 
 
+from __future__ import annotations
+
 import io
 import os
 import re
 import zlib
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 import nextcord
 from nextcord.ext import commands
@@ -429,8 +431,10 @@ class Docs(commands.Cog):
     def __init__(self, bot: Previous):
         self.bot = bot
 
-    def parse_object_inv(self, stream: SphinxObjectFileReader, url: str) -> Dict:
-        result = {}
+    def parse_object_inv(
+        self, stream: SphinxObjectFileReader, url: str
+    ) -> dict[str, str]:
+        result: dict[str, str] = {}
         inv_version = stream.readline().rstrip()
 
         if inv_version != "# Sphinx inventory version 2":

@@ -11,7 +11,7 @@ from nextcord import (
     NotFound,
     Thread,
 )
-from nextcord.ext.commands import Bot, Cog
+from nextcord.ext.commands import Cog
 from nextcord.ui import View, button
 
 from .help import HELP_CHANNEL_ID, HELP_MOD_ID, get_thread_author
