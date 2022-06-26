@@ -114,7 +114,9 @@ class Roles(Cog):
         # it serves as a way to let the type checker know this is a member
 
         await interaction.send(
-            "Select your new roles", view=RolesView(user=interaction.user)
+            "Select your new roles",
+            view=RolesView(user=interaction.user),
+            ephemeral=True,
         )
 
 
