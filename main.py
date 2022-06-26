@@ -10,7 +10,9 @@ from nextcord.ext import commands
 from nextcord.ext.commands import errors
 from nextcord.ext.application_checks import errors as application_errors
 
-bot = commands.Bot("=", intents=Intents(messages=True, guilds=True, members=True, message_content=True))
+bot = commands.Bot(
+    "=", intents=Intents(messages=True, guilds=True, members=True, message_content=True)
+)
 bot.load_extension("jishaku")
 
 issue_regex = compile(r"##(\d+)")
@@ -36,21 +38,28 @@ async def on_command_error(ctx, error):
         return
     elif isinstance(error, errors.MissingRole):
         role = ctx.guild.get_role(int(error.missing_role))  # type: ignore
-        await ctx.send(f"\"{role.name}\" is required to use this command.")  # type: ignore
+        await ctx.send(f'"{role.name}" is required to use this command.')  # type: ignore
         return
     else:
         await ctx.send(
             f"This command raised an exception: `{type(error)}:{str(error)}`"
         )
 
+
 @bot.event
-async def on_application_command_error(interaction: Interaction, error: Exception) -> None:
+async def on_application_command_error(
+    interaction: Interaction, error: Exception
+) -> None:
     if isinstance(error, application_errors.ApplicationMissingRole):
         role = interaction.guild.get_role(int(error.missing_role))  # type: ignore
         await interaction.send(f"{role.mention} role is required to use this command.", ephemeral=True)  # type: ignore
         return
     else:
-        await interaction.send(f"This command raised an exception: `{type(error)}:{str(error)}`", ephemeral=True)
+        await interaction.send(
+            f"This command raised an exception: `{type(error)}:{str(error)}`",
+            ephemeral=True,
+        )
+
 
 @bot.listen()
 async def on_message(message):

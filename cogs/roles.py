@@ -11,22 +11,15 @@ from nextcord.utils import get
 if TYPE_CHECKING:
     from nextcord.abc import Snowflake
 
-
 GUILD_ID = int(getenv("GUILD_ID", 0))
-UPDATES_ROLE_ID = int(getenv("UPDATES_ROLE_ID", 0))
-NEWS_ROLE_ID = int(getenv("NEWS_ROLE_ID", 0))
-
-ROLE_VALUES: dict[str, int] = {
-    "updates": UPDATES_ROLE_ID,
-    "news": NEWS_ROLE_ID,
-}
+ASSIGNABLE_ROLE_IDS = {int(r) for r in getenv("ASSIGNABLE_ROLE_IDS", "[]").split(",")}
 
 
 class RolesView(View):
-    def __init__(self, *, user: Member | None):
+    def __init__(self, *, member: Member | None):
         super().__init__(timeout=None)
 
-        self.add_item(RolesSelect(user=user))
+        self.add_item(RolesSelect(member=member))
 
 
 class FakeMember(Member):
@@ -38,25 +31,25 @@ class FakeMember(Member):
 
 
 class RolesSelect(Select["RolesView"]):
-    def __init__(self, *, user: Member | None):
+    def __init__(self, *, member: Member | None):
         # this is being invoked to add persistency
         # we only care about custom_id for the store
         # we cannot use guild.me as the bot is not ready so a guild is not available
-        if user is None:
-            user = FakeMember()
+        if member is None:
+            member = FakeMember()
 
         super().__init__(
             custom_id="roles:select",
             placeholder="Select your new roles",
             min_values=0,
-            max_values=2,
+            max_values=len(ASSIGNABLE_ROLE_IDS),
             options=[
                 SelectOption(
-                    label=name.capitalize(),
-                    value=name,
-                    default=user.get_role(role_id) is not None,
+                    label=member.guild.get_role(role_id).name,  # type: ignore
+                    value=str(role_id),
+                    default=member.get_role(role_id) is not None,
                 )
-                for name, role_id in ROLE_VALUES.items()
+                for role_id in ASSIGNABLE_ROLE_IDS
             ],
         )
 
@@ -67,27 +60,33 @@ class RolesSelect(Select["RolesView"]):
         # since list is invariant, it cannot be a union
         # but apparently Role does not implement Snowflake, this may need a fix
 
-        for role, role_id in ROLE_VALUES.items():
-            if interaction.user.get_role(role_id) is None and role in self.values:
+        for role_id in ASSIGNABLE_ROLE_IDS:
+            if (
+                interaction.user.get_role(role_id) is None
+                and str(role_id) in self.values
+            ):
                 # user does not have the role but wants it
                 roles.append(Object(role_id))
-                option = get(self.options, value=role)
+                option = get(self.options, value=str(role_id))
                 if option is not None:
                     option.default = True
             elif (
                 interaction.user.get_role(role_id) is not None
-                and role not in self.values
+                and str(role_id) not in self.values
             ):
                 # user has the role but does not want it
                 role_ids = [r.id for r in roles]
                 roles.pop(role_ids.index(role_id))
-                option = get(self.options, value=role)
+                option = get(self.options, value=str(role_id))
                 if option is not None:
                     option.default = False
 
         await interaction.user.edit(roles=roles)
 
-        new_roles = [value.capitalize() for value in self.values]
+        new_roles = [
+            interaction.guild.get_role(int(value)).name  # type: ignore
+            for value in self.values
+        ]
 
         await interaction.edit(
             content=f"You now have {', '.join(new_roles) or 'no roles'}", view=self.view
@@ -102,7 +101,7 @@ class Roles(Cog):
 
     async def create_views(self):
         if getattr(self.bot, "role_view_set", False) is False:
-            self.bot.add_view(RolesView(user=None))
+            self.bot.add_view(RolesView(member=None))
             # the view will accept None and only give us a select with a custom_id
 
             self.bot.role_view_set = True
@@ -115,7 +114,7 @@ class Roles(Cog):
 
         await interaction.send(
             "Select your new roles",
-            view=RolesView(user=interaction.user),
+            view=RolesView(member=interaction.user),
             ephemeral=True,
         )
 
