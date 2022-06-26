@@ -1,30 +1,30 @@
-import re
-from typing import List, Optional, Tuple
+from __future__ import annotations
 
-from nextcord import Message, Thread
-from nextcord.enums import ButtonStyle
-from nextcord.errors import HTTPException, NotFound
+import re
+from typing import TYPE_CHECKING
+
+from nextcord import (
+    AllowedMentions,
+    ButtonStyle,
+    HTTPException,
+    Interaction,
+    NotFound,
+    Thread,
+)
 from nextcord.ext.commands import Cog
-from nextcord.ext.commands.bot import Bot
-from nextcord.interactions import Interaction
-from nextcord.member import Member
-from nextcord.mentions import AllowedMentions
 from nextcord.ui import View, button
 
 from .help import HELP_CHANNEL_ID, HELP_MOD_ID, get_thread_author
+
+if TYPE_CHECKING:
+    from nextcord import Member, Message, User
+    from previous.__main__ import Previous
 
 codeblock_regex = re.compile(r"`{3}(\w*) *\n(.*)\n`{3}", flags=re.DOTALL)
 
 discord_to_workbin = {"py": "python", "js": "javascript"}
 other_paste_services = ["pastebin.com", "sourceb.in", "srcb.in"]
-supported_content_types: List[str] = [
-    "text/plain",
-    "text/markdown",
-    "text/x-python",
-    "application/json",
-    "application/javascript",
-]
-content_type_to_lang = {
+content_type_to_lang: dict[str, str] = {
     "text/plain": "text",
     "text/markdown": "markdown",
     "text/x-python": "python",
@@ -34,15 +34,18 @@ content_type_to_lang = {
 
 
 class DeleteMessage(View):
-    def __init__(self, message_author: Member):
-        self.message: Optional[Message] = None
+    message: Message
+    # this will exist when this is initialised
+
+    def __init__(self, message_author: User | Member):
         self.message_author = message_author
         super().__init__(timeout=300)  # 300 seconds == 5 minutes
 
     @button(emoji="❌", style=ButtonStyle.secondary, custom_id="delete_autopaste")
     async def delete_autopaste(self, _, interaction: Interaction) -> None:
         try:
-            await interaction.message.delete()  # type: ignore
+            if interaction.message:
+                await interaction.message.delete()
         except (HTTPException, NotFound):
             pass
 
@@ -51,41 +54,47 @@ class DeleteMessage(View):
     async def on_timeout(self) -> None:
         self.stop()
         try:
-            await self.message.edit(view=None)  # type: ignore
+            await self.message.edit(view=None)
         except (AttributeError, HTTPException, NotFound):
             pass
 
     async def interaction_check(self, interaction: Interaction) -> bool:
         if (
-            not interaction.guild 
+            not interaction.guild
             or not interaction.user
             or not isinstance(interaction.user, Member)
             or not interaction.channel
         ):
             await self.on_timeout()
             return False
-        
+
         if interaction.channel.permissions_for(interaction.user).manage_messages:  # type: ignore
             return True
 
-        if isinstance(interaction.channel, Thread) and interaction.channel.parent_id == HELP_CHANNEL_ID:
+        if (
+            isinstance(interaction.channel, Thread)
+            and interaction.channel.parent_id == HELP_CHANNEL_ID
+        ):
             thread_author = await get_thread_author(interaction.channel)
             if interaction.user.get_role(HELP_MOD_ID):
                 return True
-            elif thread_author.id == self.message_author.id and thread_author.id == interaction.user.id:
+            elif (
+                thread_author.id == self.message_author.id
+                and thread_author.id == interaction.user.id
+            ):
                 return False
         elif interaction.user.id == self.message_author.id:
             return True
-        
+
         return False
 
 
 class AutoPaste(Cog):
-    def __init__(self, bot) -> None:
-        self.bot: Bot = bot
+    def __init__(self, bot: Previous) -> None:
+        self.bot = bot
 
     async def do_upload(self, content: str, language: str) -> str:
-        res = await self.bot.session.post(  # type: ignore
+        res = await self.bot.session.post(
             url="https://paste.nextcord.dev/api/new",
             json={"content": str(content), "language": language},
             headers={"Content-Type": "application/json"},
@@ -102,17 +111,17 @@ class AutoPaste(Cog):
         if message.content.startswith("!"):
             return
 
-        delete_view: DeleteMessage = DeleteMessage(message.author)  # type: ignore
+        delete_view = DeleteMessage(message.author)
 
         # Files
         if message.attachments:
-            uploaded_files: List[Tuple[str, str]] = []
+            uploaded_files: list[tuple[str, str]] = []
             for attachment in message.attachments:
                 if not attachment.content_type:
                     continue
 
                 content_type = attachment.content_type.split(";")[0].strip()
-                if content_type not in supported_content_types:
+                if content_type not in content_type_to_lang.keys():
                     continue
 
                 file_bytes = await attachment.read()
@@ -178,5 +187,5 @@ class AutoPaste(Cog):
         )
 
 
-def setup(bot):
+def setup(bot: Previous):
     bot.add_cog(AutoPaste(bot))

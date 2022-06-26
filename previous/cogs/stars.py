@@ -1,15 +1,22 @@
+from __future__ import annotations
+
 import aiohttp
-from os import environ as env
+from os import getenv
 from nextcord.ext import commands
 from nextcord.ext.tasks import loop
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from previous.__main__ import Previous
 
 
 class GitHubStars(commands.Cog):
     """Run a task loop to update a channel with the current stars for nextcord/nextcord and nextcord/nextcord-v3"""
 
-    STARS_CHANNEL_ID = int(env["STARS_CHANNEL_ID"])
+    STARS_CHANNEL_ID = int(getenv("STARS_CHANNEL_ID", 0))
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Previous):
         self.__bot = bot
         self.update_stars.start()
 
@@ -28,18 +35,20 @@ class GitHubStars(commands.Cog):
         channel_name = f"v2 {nextcord_stars}🌟| v3 {nextcord_v3_stars}🌟"
 
         # update channel name if it has changed
-        if self.__channel.name != channel_name:
-            await self.__channel.edit(name=channel_name)
+        if self.__channel.name != channel_name:  # type: ignore
+            await self.__channel.edit(name=channel_name)  # type: ignore
 
     @update_stars.before_loop
     async def before_update_stars(self):
         """Before the loop starts, get the channel"""
         await self.__bot.wait_until_ready()
-        self.__channel = self.__bot.get_channel(self.STARS_CHANNEL_ID)
+        c = self.__bot.get_channel(self.STARS_CHANNEL_ID)
+        assert c is not None
+        self.__channel = c
 
     def cog_unload(self):
         self.update_stars.cancel()
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Previous):
     bot.add_cog(GitHubStars(bot))

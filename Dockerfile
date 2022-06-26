@@ -11,4 +11,4 @@ RUN poetry install --no-root --no-dev
 COPY . .
 
 ENTRYPOINT ["poetry", "run", "python3"]
-CMD ["main.py"]
+CMD ["-m", "previous"]
