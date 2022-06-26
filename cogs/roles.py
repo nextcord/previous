@@ -65,8 +65,7 @@ class RolesSelect(Select["RolesView"]):
                 roles.append(Object(role_id))
                 option = get(self.options, value=role)
                 if option is not None:
-                    index = self.options.index(option)
-                    self.options[index].default = True
+                    option.default = True
             elif (
                 interaction.user.get_role(role_id) is not None
                 and role not in self.values
@@ -76,8 +75,7 @@ class RolesSelect(Select["RolesView"]):
                 roles.pop(role_ids.index(role_id))
                 option = get(self.options, value=role)
                 if option is not None:
-                    index = self.options.index(option)
-                    self.options[index].default = False
+                    option.default = False
 
         await interaction.user.edit(roles=roles)
 
