@@ -11,8 +11,8 @@ from nextcord.utils import get
 if TYPE_CHECKING:
     from nextcord.abc import Snowflake
 
-GUILD_ID = int(getenv("GUILD_ID", 0))
-ASSIGNABLE_ROLE_IDS = {int(r) for r in getenv("ASSIGNABLE_ROLE_IDS", "0,0").split(",")}
+GUILD_ID = int(getenv("GUILD_ID"))
+ASSIGNABLE_ROLE_IDS = {int(r) for r in getenv("ASSIGNABLE_ROLE_IDS").split(",")}
 
 
 class RolesView(View):
