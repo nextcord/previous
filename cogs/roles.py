@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from os import getenv
+from os import environ as env
 from typing import TYPE_CHECKING
 
 from nextcord import Interaction, Member, Object, SelectOption, slash_command
@@ -11,8 +11,8 @@ from nextcord.utils import get
 if TYPE_CHECKING:
     from nextcord.abc import Snowflake
 
-GUILD_ID = int(getenv("GUILD_ID"))
-ASSIGNABLE_ROLE_IDS = {int(r) for r in getenv("ASSIGNABLE_ROLE_IDS").split(",")}
+GUILD_ID = int(env["GUILD_ID"])
+ASSIGNABLE_ROLE_IDS = {int(r) for r in env["ASSIGNABLE_ROLE_IDS"].split(",")}
 
 
 class RolesView(View):
