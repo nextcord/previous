@@ -1,0 +1,1 @@
+We recommend using this tutorial to write your own custom help command <https://gist.github.com/InterStella0/b78488fb28cadf279dfd3164b9f0cf96>

@@ -1,0 +1,1 @@
+https://nextcord.readthedocs.io/en/latest/faq.html#what-does-blocking-mean

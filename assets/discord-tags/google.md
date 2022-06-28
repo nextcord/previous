@@ -1,0 +1,1 @@
+<https://duckduckgo.com/?q={concatArr(args, "%20")}>

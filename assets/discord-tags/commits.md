@@ -1,0 +1,1 @@
+Wanna make your GitHub commit messages not sh**ty? Refer to this website <https://kapeli.com/cheat_sheets/Conventional_Commits.docset/Contents/Resources/Documents/index> it is very helpful!

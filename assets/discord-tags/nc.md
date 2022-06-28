@@ -1,0 +1,1 @@
+https://github.com/nextcord/nextcord/issues/{args.0}

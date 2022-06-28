@@ -1,0 +1,1 @@
+The voice channel is named Genearl, intentionally, we know its named Genearl instead of General.

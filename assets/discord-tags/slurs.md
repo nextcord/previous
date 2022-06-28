@@ -1,0 +1,6 @@
+Our policy is to moderate all instances of people using slurs, no matter what race, religion, or beliefs they hold. There are several reasons for this:
+
+- Inclusivity. The number of people who are trying to reclaim slurs is smaller than the number of people who find them harmful. As such, it is not healthy to allow their use as it is more damaging, even when being used to reclaim the word, since it affects more users.
+- Precedent. Allowing certain users to post slurs sets a dangerous precedent for moderation which puts a lot of additional strain on moderation. It's infeasible to verify that each user who says a slur is allowed to for a couple of reasons. The first is that it takes a lot of time and effort to do such a thing, since it requires the user to send ID so that it cannot be abused. The second is that it's incredibly obtrusive to require ID from users.
+- Filters. At scale it's impossible to filter all messages manually, so we have automatic filters in place to do this for us. Verifying usage of slurs means we can't use these filters, which again increases the moderation burden to a level beyond what is reasonable.
+- Platform rules. Discord requires we remove instances of these words.
