@@ -1,0 +1,1 @@
+Helpers here volunteer their time to help with your issue. Remember that it is their choice to help you, not your entitlement to their help. If they can't help right now, or are too busy, you must respect that. Someone will probably help later when they have more time and feel like helping.

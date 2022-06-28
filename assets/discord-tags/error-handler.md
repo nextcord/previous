@@ -1,0 +1,1 @@
+https://docs.nextcord.dev/en/latest/ext/commands/commands.html#error-handling
