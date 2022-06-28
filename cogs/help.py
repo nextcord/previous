@@ -465,7 +465,7 @@ class HelpCog(commands.Cog):
             colour = Colour.blurple()
 
         author_embed = Embed(
-            description=f"🗨️ {interaction.user.mention} changed the topic of this thread's to:\n**{emoji} {topic} ({author})**",  # type: ignore
+            description=f"🗨️ {interaction.user.mention} changed the topic of this thread to:\n**{emoji} {topic} ({author})**",  # type: ignore
             colour=colour,
         )
 
