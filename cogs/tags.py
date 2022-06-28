@@ -1,5 +1,3 @@
-import aiohttp
-
 from nextcord.ext import commands
 
 class Tags(commands.Cog):
