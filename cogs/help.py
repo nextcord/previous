@@ -46,6 +46,7 @@ HELP_TOPIC_EMOJIS: Dict[str, str] = {
     "🤚": "Help Needed",
     "🔥": "Active",
     "⏳": "Stalled",
+    "🛠️": "Development",
     "🐛": "Bug Report",
     "📌": "Pinned",
     "⚠️": "ToS",
