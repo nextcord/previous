@@ -530,7 +530,7 @@ class Docs(commands.Cog):
         refer = None
         if ref and isinstance(ref.resolved, discord.Message):
             refer = ref.resolved.to_reference()
-        await ctx.send(embed=e, reference=refer)
+        await ctx.send(embed=e, reference=refer, mention_author=False)
 
     @commands.group(name="docs", help="python docs", invoke_without_command=True)
     async def docs_group(self, ctx: commands.Context, *, obj: str = None):
