@@ -74,10 +74,8 @@ class DeleteMessage(View):
                 return True
             elif thread_author.id == self.message_author.id and thread_author.id == interaction.user.id:
                 return False
-        elif interaction.user.id == self.message_author.id:
-            return True
         
-        return False
+        return interaction.user.id == self.message_author.id
 
 
 class AutoPaste(Cog):
