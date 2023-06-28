@@ -133,7 +133,7 @@ class HelpButton(ui.Button["HelpView"]):
 
     async def create_help_thread(self, interaction: Interaction) -> Thread:
         thread = await interaction.channel.create_thread(
-            name=f"{self._help_type} help ({interaction.user})",
+            name=f"{self._help_type} help ({interaction.user.name})",
             type=ChannelType.public_thread,
         )
 
