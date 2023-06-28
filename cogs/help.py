@@ -133,7 +133,7 @@ class HelpButton(ui.Button["HelpView"]):
 
     async def create_help_thread(self, interaction: Interaction) -> Thread:
         thread = await interaction.channel.create_thread(
-            name=f"{self._help_type} help ({interaction.user})",
+            name=f"{self._help_type} help ({interaction.user.name})",
             type=ChannelType.public_thread,
         )
 
@@ -385,7 +385,7 @@ class HelpCog(commands.Cog):
         first_thread_message = (await ctx.channel.history(limit=1, oldest_first=True).flatten())[0]
         old_author = first_thread_message.mentions[0]
 
-        await ctx.channel.edit(name=f"{topic} ({new_author})")
+        await ctx.channel.edit(name=f"{topic} ({new_author.name})")
         await first_thread_message.edit(content=new_author.mention)
         # Send log
         embed_log = Embed(
