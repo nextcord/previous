@@ -385,7 +385,7 @@ class HelpCog(commands.Cog):
         first_thread_message = (await ctx.channel.history(limit=1, oldest_first=True).flatten())[0]
         old_author = first_thread_message.mentions[0]
 
-        await ctx.channel.edit(name=f"{topic} ({new_author})")
+        await ctx.channel.edit(name=f"{topic} ({new_author.name})")
         await first_thread_message.edit(content=new_author.mention)
         # Send log
         embed_log = Embed(
