@@ -163,6 +163,7 @@ class HelpButton(ui.Button["HelpView"]):
                 "\n\n**Please include the following in your initial message:**"
                 "\n- Relevant code\n- Error (if present)\n- Expected behavior"
                 f"\n\nRefer for more to our help guildlines in <#{HELP_CHANNEL_ID}>"
+                "\n\nPlease do not mention anyone. This includes the Server Moderators."
             ),
         )
         em.set_footer(text="You can close this thread with the button or =close command.")
