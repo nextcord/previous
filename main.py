@@ -10,10 +10,12 @@ from nextcord.ext import commands
 from nextcord.ext.commands import errors
 from nextcord.ext.application_checks import errors as application_errors
 
+from cogs.utils import common
+
 bot = commands.Bot(
     "=", intents=Intents(messages=True, guilds=True, members=True, message_content=True)
 )
-bot.load_extension("jishaku")
+# bot.load_extension("jishaku")
 
 issue_regex = compile(r"##(\d+)")
 discord_regex = compile(r"#!(\d+)")
@@ -53,6 +55,8 @@ async def on_application_command_error(
     if isinstance(error, application_errors.ApplicationMissingRole):
         role = interaction.guild.get_role(int(error.missing_role))  # type: ignore
         await interaction.send(f"{role.mention} role is required to use this command.", ephemeral=True)  # type: ignore
+        return
+    elif isinstance(error, common.IgnoreMe):
         return
     else:
         await interaction.send(

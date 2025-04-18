@@ -1,19 +1,23 @@
 [tool.poetry]
 name = "previous"
 version = "0.1.0"
-description = "The support bot for nextcord"
-authors = ["Tag-Epic <tagepicuwu@gmail.com>"]
+description = "The support bot for Nextcord"
+authors = ["Nextcord Developers <code@nextcord.dev>"]
+license = "MIT"
+readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-nextcord = "git+https://github.com/nextcord/nextcord.git#master"
+python = "^3.11"
+nextcord = {git = "https://github.com/nextcord/nextcord.git"}
+# nextcord = {git = "https://github.com/nextcord/nextcord.git", rev = "refs/pull/1057/head"}
+# nextcord = "2.1.0"
 jishaku = "2.4.0"
 algoliasearch = "^2.6.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "^22.3.0"
 isort = "^5.10.1"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

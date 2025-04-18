@@ -1,0 +1,2 @@
+class IgnoreMe(Exception):
+    pass
